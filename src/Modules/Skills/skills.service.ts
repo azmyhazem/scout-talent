@@ -2,28 +2,29 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { addSkillDTO } from "./dto/addSkill.dto";
-import { UserService } from "../Users/user.service";
-import { SkillOrSpecializations } from "./skills.entity";
+import { Skill } from "./skills.entity";
+import { ApplicantService } from "../applicant/applicant.service";
 
 @Injectable()
 export class SkillService {
+
   constructor(
-    @InjectRepository(SkillOrSpecializations)
-    private skillRepository: Repository<SkillOrSpecializations>,
-    private userService: UserService,
+    @InjectRepository(Skill)
+    private skillRepository: Repository<Skill>,
+    private applicantService: ApplicantService,
   ) {}
 
   public async addSkill(dto: addSkillDTO, Id: string) {
     const { name } = dto;
 
-    const user = await this.userService.findUser(Id);
+    const user = await this.applicantService.findApplicantWithIdUser(Id);
     if (!user) throw new BadRequestException("not user found");
 
     const skill = await this.skillRepository.findOne({ where: { name } });
     if (skill)
       throw new BadRequestException("this name already in your information");
 
-    const NSkill = this.skillRepository.create({ name, userORcompany: user });
+    const NSkill = this.skillRepository.create({ name, applicant: user });
 
     await this.skillRepository.save(NSkill);
 
@@ -33,7 +34,7 @@ export class SkillService {
   public async deleteSkill(id: string, userId: string) {
     const result = await this.skillRepository.delete({
       id,
-      userORcompany: { id: userId },
+      applicant: { id: userId },
     });
 
     if (result.affected === 0) {
@@ -42,4 +43,5 @@ export class SkillService {
 
     return { message: "delete successful" };
   }
+
 }

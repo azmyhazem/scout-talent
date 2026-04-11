@@ -1,163 +1,94 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./user.entity";
-import { MoreThan, Repository } from "typeorm";
-import { JobApplicant } from "../Job/job_applicant.entity";
-import { CandidateStatus } from "src/Shared/Enums/candidateStatus.enum";
-import { updateUserDTO } from "./dto/updateUser.dto";
-import { updateoraddAboutDTO } from "./dto/update&addAbout.dto";
+import { EntityManager, Repository } from "typeorm";
+import { RoleUser } from "src/Shared/Enums/user.enum";
+
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    @InjectRepository(JobApplicant)
-    private jobApplicantRepository: Repository<JobApplicant>,
   ) {}
 
-  public async findUser(id: string) {
-    const user = await this.userRepository.findOne({ 
-      where: { id } ,
-      relations:['experience','skillsORspecializations']
+  public async createUser(data: Partial<User>, manger?: EntityManager) {
+    const repo = manger ? manger.getRepository(User) : this.userRepository;
+
+    const user = repo.create(data);
+
+    return repo.save(user);
+  }
+
+  public findUserByEmail(email: string) {
+    return this.userRepository.findOne({
+      where: { email },
     });
-
-    return user;
   }
 
-  public async basicInformation(id: string) {
-    const user = await this.userRepository.findOne({
-      where: { id },
-      select: [
-        "id",
-        "name",
-        "email",
-        "phone",
-        "linkedIn_profile",
-        "job_title",
-        "location",
-        "About",
-      ],
-    });
-
-    return user;
-  }
-
-  public async updateProfile(dto: updateUserDTO, id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
-
-    if (!user) throw new BadRequestException("no user found");
-
-    await this.userRepository.update(id, dto);
-
-    return true;
-  }
-
-  public async addorupdateAbout(dto: updateoraddAboutDTO, id: string) {
-    const company = await this.userRepository
-      .createQueryBuilder("company")
-      .where("company.id = :id", { id })
+  public findUserByEmailWithPassword(email: string) {
+    return this.userRepository
+      .createQueryBuilder("user")
+      .addSelect("user.password")
+      .where("user.email = :email", { email })
       .getOne();
-
-    if (!company) throw new BadRequestException("no company found");
-
-    const { About } = dto;
-
-    if (About) {
-      company.About = About;
-
-      await this.userRepository.save(company);
-    }
-
-    return company.About;
   }
 
-  public async profileCompleteUser(id: string) {
+  public findUserByIdWithToken(userId: string) {
+    return this.userRepository
+      .createQueryBuilder("user")
+      .addSelect("user.refreshToken")
+      .where("user.id = :userId", { userId })
+      .getOne();
+  }
+
+  public updateAuth(
+    userId: string,
+    data: { role?: RoleUser; refreshToken: string },
+    manger?: EntityManager,
+  ) {
+    const repo = manger ? manger.getRepository(User) : this.userRepository;
+
+    
+    return repo.update(userId, data);
+  }
+
+  public restoreAccount(userId: string, manger: EntityManager) {
+    const repo = manger ? manger.getRepository(User) : this.userRepository;
+
+    return repo.update(userId, { isDelete: false });
+  }
+
+  public verify(userId: string, manger: EntityManager) {
+    const repo = manger ? manger.getRepository(User) : this.userRepository;
+
+    return repo.update(userId, { isEmailVerified: true });
+  }
+
+  public updatePassword(
+    userId: string,
+    password: string,
+    manger: EntityManager,
+  ) {
+    const repo = manger ? manger.getRepository(User) : this.userRepository;
+
+    return repo.update(userId, { password });
+  }
+
+  public updateData(
+    userId: string,
+    data: Partial<User>,
+    manger?: EntityManager,
+  ) {
+    const repo = manger ? manger.getRepository(User) : this.userRepository;
+
+    return repo.update(userId, data);
+  }
+
+  public async findUser(id: string) {
     const user = await this.userRepository.findOne({
       where: { id },
     });
 
-    if (!user) throw new BadRequestException("no user found");
-
-    let percentage = 40;
-
-    const skillsCompleted = user.skillsORspecializations?.length > 0;
-    const experienceCompleted = user.experience?.length > 0;
-
-    if (skillsCompleted) percentage += 30;
-
-    if (experienceCompleted) percentage += 30;
-
-    return {
-      percentage,
-      sections: {
-        basicInfo: true,
-        skillsCompleted,
-        experienceCompleted,
-      },
-    };
-  }
-
-  public async dashboardStatisticsUser(id: string) {
-    const user = await this.userRepository.findOne({
-      where: { id },
-    });
-
-    if (!user) throw new BadRequestException("no user found");
-
-    const totalApplicant = await this.jobApplicantRepository.count({
-      where: {
-        applicant: { id },
-        createdAt: MoreThan(this.getDateBeforeMonths(3)),
-      },
-    });
-
-    const inReview = await this.jobApplicantRepository.count({
-      where: {
-        applicant: { id },
-        createdAt: MoreThan(this.getDateBeforeMonths(3)),
-        status: CandidateStatus.SCREENING,
-      },
-    });
-
-    const interview = await this.jobApplicantRepository.count({
-      where: {
-        applicant: { id },
-        createdAt: MoreThan(this.getDateBeforeMonths(3)),
-        status: CandidateStatus.INTERVIEW,
-      },
-    });
-
-    return {
-      totalApplicant,
-      inReview,
-      interview,
-    };
-  }
-
-  public async profileCompleteCompany(id: string) {
-    const company = await this.userRepository.findOne({
-      where: { id },
-    });
-
-    if (!company) throw new BadRequestException("no user found");
-
-    let percentage = 40;
-
-    const AboutCompleted = !!company.About?.trim();
-    const specializationsCompleted =
-      company.skillsORspecializations?.length > 0;
-
-    if (AboutCompleted) percentage += 30;
-
-    if (specializationsCompleted) percentage += 30;
-
-    return {
-      percentage,
-      sections: {
-        basicInfo: true,
-        AboutCompleted,
-        specializationsCompleted,
-      },
-    };
+    return user;
   }
 
   public async deleteAccount(id: string) {
@@ -168,17 +99,9 @@ export class UserService {
     if (!user) throw new BadRequestException("no user found");
 
     user.isDelete = true;
-    user.refreshToken = '';
+    user.refreshToken = "";
     await this.userRepository.save(user);
 
     return { message: "Account deleted successfully" };
-  }
-
-  private getDateBeforeMonths(month: number) {
-    const date = new Date();
-
-    date.setMonth(date.getMonth() - month);
-
-    return date;
   }
 }

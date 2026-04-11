@@ -13,7 +13,6 @@ import { addJobDTO } from "./dto/addJob.dto";
 import { RoleUser } from "src/Shared/Enums/user.enum";
 import { updateJobDTO } from "./dto/updateJob.dto";
 import type { JwtPayloadType } from "src/Shared/types/JwtPayloadType";
-import { applyJobDTO } from "./dto/applyJob.dto";
 import { Roles } from "../../Shared/decorator/user_role.decorator";
 import { AuthGuard } from "../auth/guards/AuthUser.guard";
 import { currentUser } from "../../Shared/decorator/currentUser.decorator";
@@ -48,20 +47,6 @@ export class JobController {
   @Get("jobs/:id")
   public async GetJob(@Param("id") id: string) {
     const data = await this.jobService.getJob(id);
-    return { data };
-  }
-
-  @Post("applyJob/:jobId/:cvId")
-  @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
-  @ApiSecurity("bearer")
-  public async applyJob(
-    @currentUser() user: JwtPayloadType,
-    @Param("jobId") jobId: string,
-    @Param("cvId") cvId: string,
-    @Body() body: applyJobDTO,
-  ) {
-    const data = await this.jobService.applyJob(user.id, jobId, cvId, body);
     return { data };
   }
 

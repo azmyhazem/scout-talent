@@ -27,13 +27,12 @@ import type { JwtPayloadType } from "src/Shared/types/JwtPayloadType";
 import { requestRestoreDTO } from "./dto/requestRestore.dto";
 import { ConfigService } from "@nestjs/config";
 import { daysToMilliseconds } from "src/Shared/utils/cookie.util";
-
-interface RequestWithCookies extends Request {
-  cookies: {
-    refreshToken?: string;
+import { RefreshTokenGuard } from "./guards/refreshToken.guard";
+interface RequestWithUser extends Request {
+  user: {
+    refreshToken: string;
   };
 }
-
 interface GoogleAuth {
   email: string;
   name: string;
@@ -88,8 +87,9 @@ export class AuthController {
   }
 
   @Post("refreshToken")
-  public async getAccessToken(@Req() req: RequestWithCookies) {
-    const refreshToken = req.cookies.refreshToken;
+  @UseGuards(RefreshTokenGuard)
+  public async getAccessToken(@Req() req: RequestWithUser) {
+    const { refreshToken } = req.user;
 
     if (!refreshToken) throw new BadRequestException("no refresh token");
 
@@ -171,7 +171,7 @@ export class AuthController {
       name,
     );
 
-    if (needRole && !token) {
+    if (needRole && userId && !token) {
       return res.redirect(
         `${this.config.get<string>("SELECT_ROLE_URL")}?id=${userId}`,
       );
@@ -209,8 +209,9 @@ export class AuthController {
   }
 
   @Post("getMe")
-  public async getMe(@Req() req: RequestWithCookies) {
-    const refreshToken = req.cookies.refreshToken;
+  @UseGuards(RefreshTokenGuard)
+  public async getMe(@Req() req: RequestWithUser) {
+    const { refreshToken } = req.user;
 
     if (!refreshToken) throw new BadRequestException("no refresh token");
 

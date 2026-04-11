@@ -3,37 +3,44 @@ import { config } from "dotenv";
 import { User } from "src/Modules/Users/user.entity";
 import { CV } from "src/Modules/CV/cv.entity";
 import { Job } from "src/Modules/Job/job.entity";
-import { JobApplicant } from "src/Modules/Job/job_applicant.entity";
-import { SkillOrSpecializations } from "src/Modules/Skills/skills.entity";
+import { Skill } from "src/Modules/Skills/skills.entity";
 import { Experience } from "src/Modules/Experience/experience.entity";
-import { HiredDetails } from "src/Modules/Job/Hired_Details.entity";
-import { Interview } from "src/Modules/Job/interviews.entity";
-import { JobOffer } from "src/Modules/Job/jobOffer.entity";
-import { Reject } from "src/Modules/Job/reject.entity";
-import { FeedBack } from "src/Modules/Job/feedback.entity";
-import { CancelInterview } from "src/Modules/Job/cancelInterview.entity";
+import { HiredDetails } from "src/Modules/application/Hired_Details.entity";
+import { Interview } from "src/Modules/interview/interviews.entity";
+import { Reject } from "src/Modules/application/reject.entity";
+import { FeedBack } from "src/Modules/interview/feedback.entity";
 import { Outbox } from "src/Modules/Users/outbox.entity";
 import { UserToken } from "src/Modules/Users/user-token.entity";
+import { CancelInterview } from "src/Modules/interview/cancelInterview.entity";
+import { JobApplicant } from "src/Modules/application/job_applicant.entity";
+import { JobOffer } from "src/Modules/application/jobOffer.entity";
+import { Applicant } from "src/Modules/applicant/applicant.entity";
+import { Company } from "src/Modules/company/company.entity";
+import { Specialization } from "src/Modules/specialization/specialization.entity";
 config({ path: ".env" });
 
 export const dataSourceOptions: DataSourceOptions = {
   type: "postgres",
   url: process.env.DB_URL,
+  synchronize:false,
   entities: [
     User,
+    Applicant,
+    Company,
+    Specialization,
     UserToken,
     Outbox,
     CV,
     Job,
     JobApplicant,
-    SkillOrSpecializations,
+    Skill,
     Experience,
     HiredDetails,
     Interview,
     JobOffer,
     Reject,
     FeedBack,
-    CancelInterview
+    CancelInterview,
   ],
   migrations: ["dist/db/migrations/*.js"],
 };

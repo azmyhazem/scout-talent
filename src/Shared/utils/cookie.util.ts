@@ -1,5 +1,5 @@
 export const mintesToMilliseconds = (mintes: number) => {
-  return mintes * 60 * 60 * 1000;
+  return mintes * 60 * 1000;
 };
 
 export const daysToMilliseconds = (days: number) => {

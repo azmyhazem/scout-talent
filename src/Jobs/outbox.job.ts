@@ -86,4 +86,16 @@ export class OutboxService {
 
     return mintesToMilliseconds(60);
   }
+
+  @Cron(CronExpression.EVERY_DAY_AT_11PM)
+  async cleanOutbox() {
+    const now = new Date();
+
+    const oneDayAgo = new Date(now.getTime() - mintesToMilliseconds(24 * 60));
+
+    await this.outboxRepository.delete({
+      status: STATUS.SENT,
+      created_at: LessThanOrEqual(oneDayAgo),
+    });
+  }
 }

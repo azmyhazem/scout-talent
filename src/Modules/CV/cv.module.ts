@@ -7,6 +7,7 @@ import { MulterModule } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { UserModule } from "../Users/user.module";
 import { JwtModule } from "@nestjs/jwt";
+import { ApplicantModule } from "../applicant/applicant.module";
 
 @Module({
     controllers:[CVController],
@@ -14,6 +15,7 @@ import { JwtModule } from "@nestjs/jwt";
     imports:[
         forwardRef(()=>UserModule),
         JwtModule,
+        ApplicantModule,
         TypeOrmModule.forFeature([CV]),
         MulterModule.register({
             storage:diskStorage({

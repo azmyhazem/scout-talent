@@ -4,14 +4,12 @@ import {
   CreateDateColumn,
   Entity,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from "typeorm";
-import { Job } from "../Job/job.entity";
-import { JobApplicant } from "../Job/job_applicant.entity";
-import { CV } from "../CV/cv.entity";
-import { SkillOrSpecializations } from "../Skills/skills.entity";
-import { Experience } from "../Experience/experience.entity";
 import { UserToken } from "./user-token.entity";
+import { Applicant } from "../applicant/applicant.entity";
+import { Company } from "../company/company.entity";
 
 @Entity({ name: "users" })
 export class User {
@@ -28,12 +26,6 @@ export class User {
   password: string;
 
   @Column({ nullable: true })
-  phone: string;
-
-  @Column({ nullable: true })
-  job_title: string;
-
-  @Column({ nullable: true })
   location: string;
 
   @Column({ nullable: true })
@@ -41,9 +33,6 @@ export class User {
 
   @Column({ type: "enum", enum: RoleUser, default: RoleUser.APPLICANT })
   role: RoleUser;
-
-  @Column({ nullable: true })
-  About: string;
 
   @Column({ nullable: true, select: false })
   refreshToken: string;
@@ -57,21 +46,12 @@ export class User {
   @CreateDateColumn({ type: "timestamptz" })
   createAt: Date;
 
-  @OneToMany(() => Job, (job) => job.company)
-  jobs: Job[];
+  @OneToMany(() => UserToken, (token) => token.user)
+  tokens: UserToken[];
 
-  @OneToMany(() => CV, (cv) => cv.applicant)
-  Cvs: CV[];
+  @OneToOne(() => Applicant)
+  applicant: Applicant;
 
-  @OneToMany(() => SkillOrSpecializations, (s) => s.userORcompany)
-  skillsORspecializations: SkillOrSpecializations[];
-
-  @OneToMany(() => Experience, (experience) => experience.user)
-  experience: Experience[];
-
-  @OneToMany(() => JobApplicant, (jobApplicant) => jobApplicant.applicant)
-  jobApplicant: JobApplicant[];
-
-  @OneToMany(()=>UserToken,(token)=>token.user)
-  tokens:UserToken[]
+  @OneToOne(() => Company)
+  company: Company;
 }

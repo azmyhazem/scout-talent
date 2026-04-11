@@ -12,17 +12,24 @@ import { AuthModule } from "./Modules/auth/auth.module";
 import { dataSourceOptions } from "db/data_source";
 import { ScheduleModule } from "@nestjs/schedule";
 import { JobCornModule } from "./Jobs/job.module";
+import { InterviewModule } from "./Modules/interview/interview.module";
+import { ApplicationModule } from "./Modules/application/application.module";
+import { SpecializationModule } from "./Modules/specialization/specialization.module";
 
 @Module({
   imports: [
     UserModule,
     CVModule,
     JobModule,
+    
+    SpecializationModule,
     SkillModule,
     JobCornModule,
     ExperienceModule,
     MailModule,
     AuthModule,
+    InterviewModule,
+    ApplicationModule,
     TypeOrmModule.forRoot(dataSourceOptions),
     ConfigModule.forRoot({
       isGlobal: true,

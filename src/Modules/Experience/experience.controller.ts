@@ -17,7 +17,7 @@ import { AuthGuard } from "../auth/guards/AuthUser.guard";
 import { currentUser } from "../../Shared/decorator/currentUser.decorator";
 import { ApiSecurity } from "@nestjs/swagger";
 
-@Controller("users/me")
+@Controller("applicant/me")
 export class ExperienceController {
   constructor(private experienceService: ExperienceService) {}
 

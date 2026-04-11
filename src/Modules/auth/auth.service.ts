@@ -7,7 +7,6 @@ import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { User } from "../Users/user.entity";
 import { DataSource, Repository } from "typeorm";
 import { ConfigService } from "@nestjs/config";
-
 import { JwtService } from "@nestjs/jwt";
 import { registerDTO } from "./dto/register.dto";
 import bcrypt from "bcrypt";
@@ -27,6 +26,9 @@ import { EVENT_TYPE } from "src/Shared/Enums/outbox.enum";
 import { UserToken } from "../Users/user-token.entity";
 import { UserTokenType } from "src/Shared/Enums/UserToken.enum";
 import { requestRestoreDTO } from "./dto/requestRestore.dto";
+import { UserService } from "../Users/user.service";
+import { ApplicantService } from "../applicant/applicant.service";
+import { CompanyService } from "../company/company.service";
 
 @Injectable()
 export class AuthService {
@@ -40,6 +42,9 @@ export class AuthService {
     @InjectRepository(Outbox) private outboxRepository: Repository<Outbox>,
     private config: ConfigService,
     private jwtService: JwtService,
+    private userService: UserService,
+    private applicantService: ApplicantService,
+    private companyService: CompanyService,
   ) {}
 
   /**
@@ -53,37 +58,43 @@ export class AuthService {
       email,
       password,
       linkedIn_profile,
-      phone,
       location,
-      job_title,
+      applicant,
       role,
     } = dto;
 
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userService.findUserByEmail(email);
 
     if (user) throw new BadRequestException("This email is already registered");
 
-    const saltOrRounds = 10;
-    const hash = await bcrypt.hash(password, saltOrRounds);
-
     const token = generateToken();
 
-    const Suser = this.userRepository.create({
-      name,
-      email,
-      password: hash,
-      role,
-      phone,
-      linkedIn_profile,
-      location,
-      job_title,
-    });
-
     await this.dataSource.transaction(async (manager) => {
-      const nUser = await manager.save(Suser);
+      const hash = await this.hash(password);
+
+      const user = await this.userService.createUser(
+        {
+          name,
+          email,
+          password: hash,
+          linkedIn_profile,
+          location,
+          role,
+        },
+        manager,
+      );
+
+      if (role === RoleUser.APPLICANT) {
+        await this.applicantService.createApplicant(
+          { ...applicant, user },
+          manager,
+        );
+      } else {
+        await this.companyService.createCompany({ user }, manager);
+      }
 
       const emailverify = manager.create(UserToken, {
-        user: nUser,
+        user: user,
         token,
         type: UserTokenType.VERIFY_EMAIL,
         expiresAt: new Date(Date.now() + mintesToMilliseconds(15)),
@@ -94,7 +105,7 @@ export class AuthService {
       const outbox = manager.create(Outbox, {
         event_type: EVENT_TYPE.SEND_VERIFICATION_EMAIL,
         payload: { email, token },
-        nextRetryAt: new Date()
+        nextRetryAt: new Date(),
       });
       await manager.save(outbox);
     });
@@ -114,11 +125,7 @@ export class AuthService {
 
     const fakeHash = "$2b$10$abcdefghijklmnopqrstuv1234567890";
 
-    const user = await this.userRepository
-      .createQueryBuilder("user")
-      .addSelect("user.password")
-      .where("user.email = :email", { email })
-      .getOne();
+    const user = await this.userService.findUserByEmailWithPassword(email);
 
     let isValid = false;
 
@@ -156,19 +163,20 @@ export class AuthService {
       expiresIn: refreshExpires,
     });
 
-    const HrefreshToken = await bcrypt.hash(refreshToken, 10);
-    user.refreshToken = HrefreshToken;
+    const HrefreshToken = await this.hash(refreshToken);
 
-    const Nuser = await this.userRepository.save(user);
+    await this.userService.updateAuth(user.id, {
+      refreshToken: HrefreshToken,
+    });
 
     return {
       message: "login successful",
       accessToken,
       refreshToken,
       u: {
-        id: Nuser.id,
-        name: Nuser.name,
-        role: Nuser.role,
+        id: user.id,
+        name: user.name,
+        role: user.role,
       },
     };
   }
@@ -176,9 +184,7 @@ export class AuthService {
   public async resendEmailVerify(dto: resendEmailVerify) {
     const { email } = dto;
 
-    const user = await this.userRepository.findOne({
-      where:{email}
-    })
+    const user = await this.userService.findUserByEmail(email);
 
     if (!user)
       throw new BadRequestException("No account found with this email");
@@ -219,16 +225,12 @@ export class AuthService {
       },
     );
 
-    const user = await this.userRepository
-      .createQueryBuilder("user")
-      .addSelect("user.refreshToken")
-      .where("user.id = :id", { id: payload.id })
-      .getOne();
+    const user = await this.userService.findUserByIdWithToken(payload.id);
 
     if (!user || !user.refreshToken)
       throw new BadRequestException("Access denied");
 
-    const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
+    const isMatch = await this.compare(refreshToken, user.refreshToken);
     if (!isMatch) throw new BadRequestException("Invalid refresh token");
 
     const newAccessToken = await this.jwtService.signAsync({
@@ -240,12 +242,11 @@ export class AuthService {
   }
 
   public async logOut(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userService.findUserByIdWithToken(id);
 
     if (!user) throw new BadRequestException("not found user");
 
-    user.refreshToken = "";
-    await this.userRepository.save(user);
+    await this.userService.updateAuth(user.id, { refreshToken: "" });
 
     return true;
   }
@@ -253,7 +254,7 @@ export class AuthService {
   public async requestRestore(dto: requestRestoreDTO) {
     const { email } = dto;
 
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userService.findUserByEmail(email);
 
     if (user && user.isDelete) {
       const token = generateToken();
@@ -271,7 +272,7 @@ export class AuthService {
         const outbox = manager.create(Outbox, {
           event_type: EVENT_TYPE.SEND_RESTORE_EMAIL,
           payload: { email, token },
-          nextRetryAt: new Date()
+          nextRetryAt: new Date(),
         });
         await manager.save(outbox);
       });
@@ -294,7 +295,7 @@ export class AuthService {
     }
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.update(User, record.user.id, { isDelete: false });
+      await this.userService.restoreAccount(record.user.id, manager);
 
       await manager.delete(UserToken, record.id);
     });
@@ -322,7 +323,7 @@ export class AuthService {
     }
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.update(User, record.user.id, { isEmailVerified: true });
+      await this.userService.verify(record.user.id, manager);
 
       await manager.delete(UserToken, record.id);
     });
@@ -338,7 +339,7 @@ export class AuthService {
   public async forgetPassword(dto: forgetPasswordDTO) {
     const { email } = dto;
 
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userService.findUserByEmail(email);
 
     if (user) {
       const token = generateToken();
@@ -356,7 +357,7 @@ export class AuthService {
         const outbox = manager.create(Outbox, {
           event_type: EVENT_TYPE.SEND_RESET_PASSWORD,
           payload: { email, token },
-          nextRetryAt: new Date()
+          nextRetryAt: new Date(),
         });
         await manager.save(outbox);
       });
@@ -389,7 +390,11 @@ export class AuthService {
     const hashPassword = await bcrypt.hash(newPassword, 10);
 
     await this.dataSource.transaction(async (manager) => {
-      await manager.update(User, record.user.id, { password: hashPassword });
+      await this.userService.updatePassword(
+        record.user.id,
+        hashPassword,
+        manager,
+      );
 
       await manager.delete(UserToken, record.id);
     });
@@ -405,9 +410,9 @@ export class AuthService {
     if (!user) {
       const password = randomBytes(12).toString("hex");
 
-      const hash = await bcrypt.hash(password, 10);
+      const hash = await this.hash(password);
 
-      user = this.userRepository.create({
+      user = await this.userService.createUser({
         name,
         email,
         password: hash,
@@ -415,11 +420,10 @@ export class AuthService {
         role: RoleUser.APPLICANT,
       });
 
-      await this.userRepository.save(user);
-
       return {
         needRole: true,
         userId: user.id,
+        token: null,
       };
     }
     const payload: JwtPayloadType = { id: user.id, role: user.role };
@@ -431,21 +435,27 @@ export class AuthService {
       ) as StringValue,
     });
 
-    const HrefreshToken = await bcrypt.hash(refreshToken, 10);
+    const HrefreshToken = await this.hash(refreshToken);
 
-    user.refreshToken = HrefreshToken;
-    user.isEmailVerified = true;
+    return await this.dataSource.transaction(async (manager) => {
+      await this.userService.updateAuth(
+        user.id,
+        { refreshToken: HrefreshToken },
+        manager,
+      );
 
-    await this.userRepository.save(user);
+      await this.userService.verify(user.id, manager);
 
-    return {
-      needRole: false,
-      token: { refreshToken },
-    };
+      return {
+        needRole: false,
+        token: { refreshToken },
+        userId: null,
+      };
+    });
   }
 
   public async SelectRoleUser(dto: userRoleDTO, id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userService.findUserByIdWithToken(id);
     if (!user) throw new BadRequestException("no user found , try again");
 
     const { role } = dto;
@@ -461,21 +471,21 @@ export class AuthService {
       ) as StringValue,
     });
 
-    const HrefreshToken = await bcrypt.hash(refreshToken, 10);
+    const HrefreshToken = await this.hash(refreshToken);
 
-    user.role = role;
-    user.refreshToken = HrefreshToken;
-
-    const Nuser = await this.userRepository.save(user);
+    await this.userService.updateAuth(user.id, {
+      role,
+      refreshToken: HrefreshToken,
+    });
 
     return {
       message: "login successful",
       accessToken,
       refreshToken,
       u: {
-        id: Nuser.id,
-        name: Nuser.name,
-        role: Nuser.role,
+        id: user.id,
+        name: user.name,
+        role: role,
       },
     };
   }
@@ -488,11 +498,7 @@ export class AuthService {
       },
     );
 
-    const user = await this.userRepository
-      .createQueryBuilder("user")
-      .addSelect("user.refreshToken")
-      .where("user.id = :id", { id: payload.id })
-      .getOne();
+    const user = await this.userService.findUserByIdWithToken(payload.id);
 
     if (!user || !user.refreshToken)
       throw new BadRequestException("Access denied");
@@ -513,5 +519,13 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+
+  private async hash(password: string): Promise<string> {
+    return bcrypt.hash(password, 10);
+  }
+
+  private async compare(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash);
   }
 }

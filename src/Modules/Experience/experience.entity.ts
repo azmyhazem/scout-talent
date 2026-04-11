@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "../Users/user.entity";
+import { Applicant } from "../applicant/applicant.entity";
 @Entity({ name: "experience" })
 export class Experience {
   @PrimaryGeneratedColumn("uuid")
@@ -35,6 +36,6 @@ export class Experience {
   })
   updatedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.experience)
-  user: User;
+  @ManyToOne(() => Applicant, (app) => app.experiences)
+  applicant!: Applicant;
 }

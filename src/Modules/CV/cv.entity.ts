@@ -6,8 +6,8 @@ import {
   ManyToOne,
   OneToMany,
 } from "typeorm";
-import { User } from "../Users/user.entity";
-import { JobApplicant } from "../Job/job_applicant.entity";
+import { JobApplicant } from "../application/job_applicant.entity";
+import { Applicant } from "../applicant/applicant.entity";
 
 @Entity({ name: "CV" })
 export class CV {
@@ -23,8 +23,8 @@ export class CV {
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
 
-  @ManyToOne(() => User, (user) => user.Cvs)
-  applicant: User;
+  @ManyToOne(() => Applicant, (user) => user.cvs)
+  applicant: Applicant;
 
   @OneToMany(() => JobApplicant, (app) => app.cv)
   applications: JobApplicant[];

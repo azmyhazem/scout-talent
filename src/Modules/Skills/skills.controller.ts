@@ -15,7 +15,7 @@ import { AuthGuard } from "../auth/guards/AuthUser.guard";
 import { currentUser } from "../../Shared/decorator/currentUser.decorator";
 import { ApiSecurity } from "@nestjs/swagger";
 
-@Controller("users/me")
+@Controller("applicant/me")
 export class SkillController {
   constructor(private skillService: SkillService) {}
 

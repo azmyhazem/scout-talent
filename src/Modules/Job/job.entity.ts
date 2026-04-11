@@ -9,7 +9,8 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "../Users/user.entity";
-import { JobApplicant } from "./job_applicant.entity";
+import { JobApplicant } from "../application/job_applicant.entity";
+import { Company } from "../company/company.entity";
 
 @Entity({ name: "jobs" })
 export class Job {
@@ -73,9 +74,9 @@ export class Job {
   })
   updatedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.jobs, { eager: true })
-  company: User;
+  @ManyToOne(() => Company, (com) => com.jobs, { eager: true })
+  company: Company;
 
   @OneToMany(() => JobApplicant, (jobApplicant) => jobApplicant.job)
-  applicants: JobApplicant[];
+  applications: JobApplicant[];
 }

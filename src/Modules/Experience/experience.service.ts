@@ -3,22 +3,23 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Experience } from "./experience.entity";
 import { Repository } from "typeorm";
 import { addExperienceDTO } from "./dto/addExperience.dto";
-import { UserService } from "../Users/user.service";
 import { updateExperienceDTO } from "./dto/updateExperience.dto";
+import { ApplicantService } from "../applicant/applicant.service";
 
 @Injectable()
 export class ExperienceService {
   constructor(
     @InjectRepository(Experience)
     private experienceRepository: Repository<Experience>,
-    private userService: UserService,
+    private applicantService: ApplicantService,
   ) {}
 
   public async addExperience(dto: addExperienceDTO, userId: string) {
     const { title, description, startDate, endDate, company } = dto;
 
-    const user = await this.userService.findUser(userId);
-    if (!user) throw new BadRequestException("not user found");
+    const applicant =
+      await this.applicantService.findApplicantWithIdUser(userId);
+    if (!applicant) throw new BadRequestException("not user found");
 
     const nExper = this.experienceRepository.create({
       title,
@@ -26,7 +27,7 @@ export class ExperienceService {
       startDate,
       endDate,
       company,
-      user,
+      applicant,
     });
 
     await this.experienceRepository.save(nExper);
