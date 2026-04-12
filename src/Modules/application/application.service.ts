@@ -452,16 +452,28 @@ export class ApplicationService {
       .createQueryBuilder("jobApply")
       .leftJoin("jobApply.applicant", "applicant")
       .leftJoin("applicant.user", "user")
-      .leftJoinAndSelect("jobApply.job", "job")
-      .leftJoinAndSelect("job.company", "company")
-      .leftJoinAndSelect("jobApply.hiredDetails", "hiredDetails")
-      .leftJoinAndSelect("jobApply.offer", "offer")
-      .leftJoinAndSelect("jobApply.interviews", "interviews")
-      .leftJoinAndSelect("jobApply.reject", "reject")
+      .leftJoin("jobApply.job", "job")
+      .leftJoin("job.company", "company")
+      .leftJoin("company.user", "userC")
+      .leftJoin("jobApply.hiredDetails", "hiredDetails")
+      .leftJoin("jobApply.offer", "offer")
+      .leftJoin("jobApply.interviews", "interviews")
+      .leftJoin("jobApply.reject", "reject")
       .where("jobApply.id = :jobApplyId AND user.id = :userId", {
         jobApplyId,
         userId,
       })
+      .select([
+        "jobApply",
+        "applicant",
+        "hiredDetails",
+        "offer",
+        "interviews",
+        "reject",
+        "job",
+        "company.id",
+        "userC.name",
+      ])
       .getOne();
 
     if (!jobApplyById) throw new BadRequestException("not found Application");
@@ -478,7 +490,7 @@ export class ApplicationService {
       where: {
         id: offerId,
         application: {
-          applicant: { id: userId },
+          applicant: { user: { id: userId } },
         },
       },
     });
@@ -516,33 +528,32 @@ export class ApplicationService {
 
   public async allOfferByApplicant(userId: string) {
     const offers = await this.jobOfferRepository
-    .createQueryBuilder("offer")
+      .createQueryBuilder("offer")
 
-    .leftJoinAndSelect("offer.application", "application")
-    .leftJoin("application.interviews", "interview")
-    .leftJoin("interview.feedback", "feedback")
-    .leftJoin("application.job", "job")
-    .leftJoin("job.company", "company")
-    .leftJoin("company.user", "userC")
-    .leftJoin("application.applicant", "applicant")
-    .leftJoin("applicant.user", "user")
+      .leftJoinAndSelect("offer.application", "application")
+      .leftJoin("application.interviews", "interview")
+      .leftJoin("interview.feedback", "feedback")
+      .leftJoin("application.job", "job")
+      .leftJoin("job.company", "company")
+      .leftJoin("company.user", "userC")
+      .leftJoin("application.applicant", "applicant")
+      .leftJoin("applicant.user", "user")
 
-    .where("user.id = :userId", { userId })
+      .where("user.id = :userId", { userId })
 
-    .select([
-      "offer",
+      .select([
+        "offer",
 
-      "application.id",
+        "application.id",
 
-      "job.id",
-      "job.title",
+        "job.id",
+        "job.title",
 
-      "company.id",
-      "userC.name",
+        "company.id",
+        "userC.name",
+      ])
 
-    ])
-
-    .getMany();
+      .getMany();
 
     if (!offers) throw new BadRequestException("there is no offer");
 
@@ -551,35 +562,34 @@ export class ApplicationService {
 
   public async allOfferByCompany(userId: string) {
     const offers = await this.jobOfferRepository
-    .createQueryBuilder("offer")
+      .createQueryBuilder("offer")
 
-    .leftJoinAndSelect("offer.application", "application")
-    .leftJoin("application.interviews", "interview")
-    .leftJoin("interview.feedback", "feedback")
-    .leftJoin("application.job", "job")
-    .leftJoin("job.company", "company")
-    .leftJoin("company.user", "user")
-    .leftJoin("application.applicant", "applicant")
-    .leftJoin("applicant.user", "userA")
+      .leftJoinAndSelect("offer.application", "application")
+      .leftJoin("application.interviews", "interview")
+      .leftJoin("interview.feedback", "feedback")
+      .leftJoin("application.job", "job")
+      .leftJoin("job.company", "company")
+      .leftJoin("company.user", "user")
+      .leftJoin("application.applicant", "applicant")
+      .leftJoin("applicant.user", "userA")
 
-    .where("user.id = :userId", { userId })
+      .where("user.id = :userId", { userId })
 
-    .select([
-      "offer",
+      .select([
+        "offer",
 
-      "application.id",
+        "application.id",
 
-      "job.id",
-      "job.title",
+        "job.id",
+        "job.title",
 
-      "applicant.id",
-      "userA.name",
+        "applicant.id",
+        "userA.name",
+      ])
 
-    ])
+      .getMany();
 
-    .getMany();
-
-    if ((offers.length === 0)) throw new BadRequestException("there is no offer");
+    if (offers.length === 0) throw new BadRequestException("there is no offer");
 
     return offers;
   }

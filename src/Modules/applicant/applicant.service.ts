@@ -97,7 +97,7 @@ export class ApplicantService {
   public async profileCompleteUser(id: string) {
     const applicant = await this.applicantRepository.findOne({
       where: { user: { id } },
-      relations: ["user"],
+      relations: ["user" ,"skills" ,"experiences"],
     });
 
     if (!applicant) throw new BadRequestException("no user found");

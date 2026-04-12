@@ -22,9 +22,24 @@ export class JobServices {
   ) {}
 
   public async findJob(id: string) {
-    return this.jobRepository.findOne({
-      where: { id, status: JobStatus.PUBLISHED },
-    });
+    const job = await this.jobRepository
+      .createQueryBuilder("job")
+      .leftJoin("job.company", "company")
+      .leftJoin("company.user", "user")
+      .where("job.id = :id AND job.status = :status", {
+        id,
+        status: JobStatus.PUBLISHED,
+      })
+      .select([
+        "job.id",
+        "job.title",
+        "job.description",
+        "company.id",
+        "company.name",
+        "user.name",
+      ])
+      .getOne();
+    return job;
   }
 
   public activeJobs(companyId: string): Promise<number> {
@@ -107,7 +122,6 @@ export class JobServices {
     return jobs;
   }
 
-  
   public async GetAllJobsByCompany(companyId: string, q?: JobStatus) {
     const jobs = this.jobRepository
       .createQueryBuilder("job")

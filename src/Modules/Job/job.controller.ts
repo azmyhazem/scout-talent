@@ -44,7 +44,7 @@ export class JobController {
     return { data };
   }
 
-  @Get("jobs/:id")
+  @Get("/:id")
   public async GetJob(@Param("id") id: string) {
     const data = await this.jobService.getJob(id);
     return { data };

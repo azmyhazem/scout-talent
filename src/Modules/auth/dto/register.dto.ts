@@ -6,7 +6,7 @@ import {
   Length,
   ValidateNested,
 } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ApplicantDataDTO } from "./applicantData.dto";
 import { Type } from "class-transformer";
 
@@ -40,5 +40,6 @@ export class registerDTO {
 
   @ValidateNested()
   @Type(() => ApplicantDataDTO)
+  @ApiPropertyOptional()
   applicant?: ApplicantDataDTO;
 }
