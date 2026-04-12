@@ -493,6 +493,12 @@ export class ApplicationService {
           applicant: { user: { id: userId } },
         },
       },
+      relations: [
+        "application",
+        "application.job",
+        "application.job.company",
+        "application.job.company.user",
+      ],
     });
 
     if (!offer) throw new BadRequestException("there is no offer");
@@ -511,7 +517,7 @@ export class ApplicationService {
 
       if (Noffer.status === OfferStatus.REJECTED) {
         await this.rejectCV(
-          userId,
+          offer.application.job.company.user.id,
           offer.application.id,
           {
             reason: "applicant reject offer",
@@ -521,7 +527,12 @@ export class ApplicationService {
       }
 
       return {
-        data: { Noffer },
+        data: {
+          message:
+            Noffer.status === OfferStatus.REJECTED
+              ? "You have successfully rejected the job offer. We wish you the best in finding a better opportunity 💼"
+              : "Congratulations! 🎉 You have successfully accepted the job offer. Wishing you success in your new journey 🚀",
+        },
       };
     });
   }

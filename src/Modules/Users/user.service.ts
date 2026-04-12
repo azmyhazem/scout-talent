@@ -3,7 +3,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./user.entity";
 import { EntityManager, Repository } from "typeorm";
 import { RoleUser } from "src/Shared/Enums/user.enum";
-
 @Injectable()
 export class UserService {
   constructor(
@@ -47,7 +46,6 @@ export class UserService {
   ) {
     const repo = manger ? manger.getRepository(User) : this.userRepository;
 
-    
     return repo.update(userId, data);
   }
 
