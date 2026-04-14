@@ -50,24 +50,24 @@ export class CVController {
     return { data };
   }
 
-  // @Get("download/:projectId/:fileName")
-  // downloadFile(
-  //   @Param("projectId") projectId: string,
-  //   @Param("fileName") fileName: string,
-  //   @Res() res: Response,
-  // ) {
-  //   const filePath = this.getFilePath(projectId, fileName);
+  @Get("download/:cvId")
+  @Roles(RoleUser.APPLICANT)
+  @UseGuards(AuthGuard)
+  async downloadFile(@Param("cvId") cvId: string, @Res() res: Response) {
+    const { url } = await this.cvService.find(cvId);
 
-  //   if (!filePath) {
-  //     throw new NotFoundException("File not found");
-  //   }
+    if (!url) {
+      throw new NotFoundException("File not found");
+    }
+    const filePath = join(process.cwd(), url);
+    return res.download(filePath);
+  }
 
-  //   return res.download(filePath); // دي زي attachment
-  // }
-
-  @Get("view/:projectId")
-  async viewFile(@Param("projectId") projectId: string, @Res() res: Response) {
-    const { url } = await this.cvService.find(projectId);
+  @Get("view/:cvId")
+  @Roles(RoleUser.APPLICANT)
+  @UseGuards(AuthGuard)
+  async viewFile(@Param("cvId") cvId: string, @Res() res: Response) {
+    const { url } = await this.cvService.find(cvId);
 
     if (!url) {
       throw new NotFoundException("File not found");
