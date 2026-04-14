@@ -8,6 +8,8 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Res,
+  NotFoundException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import type { Express } from "express";
@@ -19,6 +21,8 @@ import { AuthGuard } from "../auth/guards/AuthUser.guard";
 import { currentUser } from "../../Shared/decorator/currentUser.decorator";
 import { ApiBody, ApiConsumes, ApiSecurity } from "@nestjs/swagger";
 import { uploadImageDTO } from "./dto/cvUpload.dto";
+import type { Response } from "express";
+import { join } from "path";
 
 @Controller("cv")
 export class CVController {
@@ -36,19 +40,47 @@ export class CVController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) throw new BadRequestException("no file upload");
-    
-    const data = await this.cvService.uploadCV(user.id, file.path ,file.originalname);
+
+    const data = await this.cvService.uploadCV(
+      user.id,
+      file.path,
+      file.originalname,
+    );
 
     return { data };
+  }
+
+  // @Get("download/:projectId/:fileName")
+  // downloadFile(
+  //   @Param("projectId") projectId: string,
+  //   @Param("fileName") fileName: string,
+  //   @Res() res: Response,
+  // ) {
+  //   const filePath = this.getFilePath(projectId, fileName);
+
+  //   if (!filePath) {
+  //     throw new NotFoundException("File not found");
+  //   }
+
+  //   return res.download(filePath); // دي زي attachment
+  // }
+
+  @Get("view/:projectId")
+  async viewFile(@Param("projectId") projectId: string, @Res() res: Response) {
+    const { url } = await this.cvService.find(projectId);
+
+    if (!url) {
+      throw new NotFoundException("File not found");
+    }
+    const filePath = join(process.cwd(), url);
+    return res.sendFile(filePath);
   }
 
   @Get("/getAll")
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
-  public async AllCV(
-    @currentUser() user: JwtPayloadType
-  ) {
+  public async AllCV(@currentUser() user: JwtPayloadType) {
     const data = await this.cvService.getAllCVFromUser(user.id);
 
     return { data };

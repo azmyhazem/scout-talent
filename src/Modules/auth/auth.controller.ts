@@ -28,9 +28,9 @@ import { requestRestoreDTO } from "./dto/requestRestore.dto";
 import { ConfigService } from "@nestjs/config";
 import { daysToMilliseconds } from "src/Shared/utils/cookie.util";
 import { RefreshTokenGuard } from "./guards/refreshToken.guard";
-interface RequestWithUser extends Request {
-  user: {
-    refreshToken: string;
+interface RequestWithCookies extends Request {
+  cookies: {
+    refreshToken?: string;
   };
 }
 interface GoogleAuth {
@@ -88,8 +88,8 @@ export class AuthController {
 
   @Post("refreshToken")
   @UseGuards(RefreshTokenGuard)
-  public async getAccessToken(@Req() req: RequestWithUser) {
-    const { refreshToken } = req.user;
+  public async getAccessToken(@Req() req: RequestWithCookies) {
+    const { refreshToken } = req.cookies;
 
     if (!refreshToken) throw new BadRequestException("no refresh token");
 
@@ -210,8 +210,8 @@ export class AuthController {
 
   @Post("getMe")
   @UseGuards(RefreshTokenGuard)
-  public async getMe(@Req() req: RequestWithUser) {
-    const { refreshToken } = req.user;
+  public async getMe(@Req() req: RequestWithCookies) {
+    const { refreshToken } = req.cookies;
 
     if (!refreshToken) throw new BadRequestException("no refresh token");
 

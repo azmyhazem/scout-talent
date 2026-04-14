@@ -52,7 +52,7 @@ export class UserService {
   public restoreAccount(userId: string, manger: EntityManager) {
     const repo = manger ? manger.getRepository(User) : this.userRepository;
 
-    return repo.update(userId, { isDelete: false });
+    return repo.update(userId, { isDelete: false , });
   }
 
   public verify(userId: string, manger: EntityManager) {

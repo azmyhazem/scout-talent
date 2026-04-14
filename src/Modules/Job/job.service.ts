@@ -202,7 +202,7 @@ export class JobServices {
     const job = await this.jobRepository.findOne({
       where: {
         id: jobId,
-        company: { id: companyId },
+        company: { user: { id: companyId } },
       },
     });
 

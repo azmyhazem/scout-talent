@@ -15,13 +15,14 @@ import { JobCornModule } from "./Jobs/job.module";
 import { InterviewModule } from "./Modules/interview/interview.module";
 import { ApplicationModule } from "./Modules/application/application.module";
 import { SpecializationModule } from "./Modules/specialization/specialization.module";
+import { CloudinaryModule } from "./Shared/cloudinary/cloudinary.module";
 
 @Module({
   imports: [
     UserModule,
     CVModule,
     JobModule,
-    
+    CloudinaryModule,
     SpecializationModule,
     SkillModule,
     JobCornModule,

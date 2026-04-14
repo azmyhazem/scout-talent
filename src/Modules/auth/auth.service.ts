@@ -130,9 +130,9 @@ export class AuthService {
     let isValid = false;
 
     if (user) {
-      isValid = await bcrypt.compare(password, user.password);
+      isValid = await this.compare(password, user.password);
     } else {
-      await bcrypt.compare(password, fakeHash);
+      await this.compare(password, fakeHash);
     }
     if (!user || !isValid)
       throw new UnauthorizedException("Invalid email or password");
@@ -186,32 +186,26 @@ export class AuthService {
 
     const user = await this.userService.findUserByEmail(email);
 
-    if (!user)
-      throw new BadRequestException("No account found with this email");
+    if (user && !user.isEmailVerified) {
+      const token = generateToken();
 
-    if (user.isEmailVerified)
-      return {
-        message: "Email is already verified",
-      };
-    const token = generateToken();
+      await this.dataSource.transaction(async (manager) => {
+        const emailverify = manager.create(UserToken, {
+          user,
+          token,
+          type: UserTokenType.VERIFY_EMAIL,
+          expiresAt: new Date(Date.now() + mintesToMilliseconds(15)),
+        });
 
-    await this.dataSource.transaction(async (manager) => {
-      const emailverify = manager.create(UserToken, {
-        user,
-        token,
-        type: UserTokenType.VERIFY_EMAIL,
-        expiresAt: new Date(Date.now() + mintesToMilliseconds(15)),
+        await manager.save(emailverify);
+
+        const outbox = manager.create(Outbox, {
+          event_type: EVENT_TYPE.SEND_VERIFICATION_EMAIL,
+          payload: { email, token },
+        });
+        await manager.save(outbox);
       });
-
-      await manager.save(emailverify);
-
-      const outbox = manager.create(Outbox, {
-        event_type: EVENT_TYPE.SEND_VERIFICATION_EMAIL,
-        payload: { email, token },
-      });
-      await manager.save(outbox);
-    });
-
+    }
     return {
       message: "Verification email sent successfully. Please check your inbox.",
     };

@@ -10,16 +10,25 @@ export class CVService {
     private applicantService: ApplicantService,
   ) {}
 
-  public async uploadCV(userId: string, url: string ,name:string) {
+  public async uploadCV(userId: string, url: string, name: string) {
     const user = await this.applicantService.findApplicantWithIdUser(userId);
 
     if (!user) throw new BadRequestException("user not found");
 
-    const cv = this.cvRepository.create({name, url, applicant: user });
+    const cv = this.cvRepository.create({ name, url, applicant: user });
 
     await this.cvRepository.save(cv);
 
     return { message: "cv upload successful", cvId: cv.id };
+  }
+
+  public async find(cvId: string) {
+    const cv = await this.cvRepository.findOne({
+      where: { id: cvId },
+    });
+
+    if (!cv) throw new BadRequestException("cv not found");
+    return { url: cv.url };
   }
 
   public async getAllCVFromUser(userId: string) {
@@ -27,9 +36,11 @@ export class CVService {
 
     if (!user) throw new BadRequestException("user not found");
 
-    const cvs = await this.cvRepository.find({where:{applicant:{id:user.id}}});
+    const cvs = await this.cvRepository.find({
+      where: { applicant: { id: user.id } },
+    });
 
-    return {cvs};
+    return { cvs };
   }
 
   public async deleteCV(userId: string, cvId: string) {
@@ -38,9 +49,10 @@ export class CVService {
     if (!user) throw new BadRequestException("user not found");
 
     await this.cvRepository.delete({
-        id:cvId,applicant:user
-    })
-    return {message:'delete successful'}
+      id: cvId,
+      applicant: user,
+    });
+    return { message: "delete successful" };
   }
   public async findCV(id: string) {
     const cv = await this.cvRepository.findOne({ where: { id } });
