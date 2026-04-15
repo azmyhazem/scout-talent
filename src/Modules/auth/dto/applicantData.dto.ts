@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { IsEnum, IsString } from "class-validator";
+import { IndustryName } from "src/Shared/Enums/industry.enum";
 
 export class ApplicantDataDTO {
   @IsString()
@@ -9,4 +10,8 @@ export class ApplicantDataDTO {
   @IsString()
   @ApiProperty()
   job_title: string;
+
+  @IsEnum(IndustryName, { message: "Invalid industry value" })
+  @ApiProperty({ enum: IndustryName })
+  industry: IndustryName;
 }

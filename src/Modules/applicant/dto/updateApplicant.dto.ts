@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsOptional, IsString } from "class-validator";
+import { IndustryName } from "src/Shared/Enums/industry.enum";
 
 export class updateApplicantDTO {
   @IsString()
@@ -26,4 +27,5 @@ export class updateApplicantDTO {
   @IsOptional()
   @ApiPropertyOptional()
   job_title!: string;
+
 }

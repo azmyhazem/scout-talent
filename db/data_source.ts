@@ -17,6 +17,7 @@ import { JobOffer } from "src/Modules/application/jobOffer.entity";
 import { Applicant } from "src/Modules/applicant/applicant.entity";
 import { Company } from "src/Modules/company/company.entity";
 import { Specialization } from "src/Modules/specialization/specialization.entity";
+import { Industry } from "src/Modules/industry/industry.entity";
 config({ path: ".env" });
 
 export const dataSourceOptions: DataSourceOptions = {
@@ -27,6 +28,7 @@ export const dataSourceOptions: DataSourceOptions = {
     User,
     Applicant,
     Company,
+    Industry,
     Specialization,
     UserToken,
     Outbox,

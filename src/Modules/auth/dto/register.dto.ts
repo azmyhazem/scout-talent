@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   Length,
   ValidateNested,
+  IsEnum,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ApplicantDataDTO } from "./applicantData.dto";
@@ -33,7 +34,8 @@ export class registerDTO {
   @ApiProperty()
   linkedIn_profile: string;
 
-  @IsString()
+  @IsEnum(RoleUser, { message: "role not correct" })
+  @ApiProperty({ enum: RoleUser })
   @IsNotEmpty()
   @ApiProperty()
   role: RoleUser;

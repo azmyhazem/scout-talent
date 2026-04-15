@@ -15,12 +15,14 @@ import { JobCornModule } from "./Jobs/job.module";
 import { InterviewModule } from "./Modules/interview/interview.module";
 import { ApplicationModule } from "./Modules/application/application.module";
 import { SpecializationModule } from "./Modules/specialization/specialization.module";
+import { IndustryModule } from "./Modules/industry/industry.module";
 
 @Module({
   imports: [
     UserModule,
     CVModule,
     JobModule,
+    IndustryModule,
     SpecializationModule,
     SkillModule,
     JobCornModule,

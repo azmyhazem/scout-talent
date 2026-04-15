@@ -14,10 +14,11 @@ import { Outbox } from "../Users/outbox.entity";
 import { ApplicantModule } from "../applicant/applicant.module";
 import { CompanyModule } from "../company/company.module";
 import { RefreshTokenStrategy } from "./strategies/refreshToken.strategy";
+import { IndustryModule } from "../industry/industry.module";
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy , RefreshTokenStrategy],
+  providers: [AuthService, GoogleStrategy, RefreshTokenStrategy],
   imports: [
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -35,6 +36,7 @@ import { RefreshTokenStrategy } from "./strategies/refreshToken.strategy";
     }),
     MailModule,
     UserModule,
+    IndustryModule,
     ApplicantModule,
     CompanyModule,
     TypeOrmModule.forFeature([User, UserToken, Outbox]),

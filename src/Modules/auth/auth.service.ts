@@ -29,6 +29,7 @@ import { requestRestoreDTO } from "./dto/requestRestore.dto";
 import { UserService } from "../Users/user.service";
 import { ApplicantService } from "../applicant/applicant.service";
 import { CompanyService } from "../company/company.service";
+import { IndustryRepository } from "../industry/industry.repository";
 
 @Injectable()
 export class AuthService {
@@ -45,6 +46,7 @@ export class AuthService {
     private userService: UserService,
     private applicantService: ApplicantService,
     private companyService: CompanyService,
+    private industryRepo: IndustryRepository,
   ) {}
 
   /**
@@ -84,11 +86,18 @@ export class AuthService {
         manager,
       );
 
-      if (role === RoleUser.APPLICANT) {
+      if (role === RoleUser.APPLICANT && applicant) {
+        const { phone, industry, job_title } = applicant;
+
+        const industryR = await this.industryRepo.find(industry);
+
+        if (!industryR) throw new BadRequestException("industry not found");
+
         await this.applicantService.createApplicant(
-          { ...applicant, user },
+          { phone, job_title, user, industry: industryR },
           manager,
         );
+
       } else {
         await this.companyService.createCompany({ user }, manager);
       }
