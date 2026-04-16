@@ -200,7 +200,7 @@ export class AuthService {
 
       await this.dataSource.transaction(async (manager) => {
         const emailverify = manager.create(UserToken, {
-          user,
+          user: user,
           token,
           type: UserTokenType.VERIFY_EMAIL,
           expiresAt: new Date(Date.now() + mintesToMilliseconds(15)),
@@ -211,6 +211,7 @@ export class AuthService {
         const outbox = manager.create(Outbox, {
           event_type: EVENT_TYPE.SEND_VERIFICATION_EMAIL,
           payload: { email, token },
+          nextRetryAt: new Date(),
         });
         await manager.save(outbox);
       });

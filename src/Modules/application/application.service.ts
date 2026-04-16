@@ -107,10 +107,7 @@ export class ApplicationService {
     return { jobaApply: await jobsApply.getMany() };
   }
 
-  public async GetJobByCompanyApplyById(
-    userId: string,
-    applicationId:string
-  ) {
+  public async GetJobByCompanyApplyById(userId: string, applicationId: string) {
     const jobsApply = this.jobApplicantRepository
       .createQueryBuilder("jobApply")
 
@@ -134,9 +131,12 @@ export class ApplicationService {
         "applicant.job_title",
       ])
 
-      .where("user.id = :userId AND jobApply.id= :applicationId", { userId,  applicationId});
+      .where("user.id = :userId AND jobApply.id= :applicationId", {
+        userId,
+        applicationId,
+      });
 
-    return { jobApply: await jobsApply.getOne()};
+    return { jobApply: await jobsApply.getOne() };
   }
 
   public async applyJob(
@@ -182,6 +182,7 @@ export class ApplicationService {
         applicationId: apps.applicationId,
         candidateId: user.candidateId,
         jobIdAi: job.jobIdAi,
+        asset_id: cv.asset_id,
       },
       {
         attempts: 3,

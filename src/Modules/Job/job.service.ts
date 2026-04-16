@@ -113,16 +113,6 @@ export class JobServices {
 
     const job = await this.jobRepository.save(Njob);
 
-    const formattedSkills = skills.reduce(
-      (acc, skill) => {
-        acc[skill] = {
-          level: "Intermediate", // قيمة ثابتة
-        };
-        return acc;
-      },
-      {} as Record<string, { level: string }>,
-    );
-
     await this.upload_job.add(
       "job",
       {
@@ -130,7 +120,7 @@ export class JobServices {
         title,
         description: `${description}, ${requirements}, ${responsibilities.join(" | ")}`,
         seniority,
-        required_skills: formattedSkills,
+        required_skills: skills,
       },
       {
         attempts: 3,

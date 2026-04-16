@@ -5,7 +5,6 @@ import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
 import { ConfigService } from "@nestjs/config";
-import { JobServices } from "src/Modules/Job/job.service";
 import { firstValueFrom } from "rxjs";
 import { ApplicationService } from "src/Modules/application/application.service";
 
@@ -23,10 +22,10 @@ export class AnalyzeMatchProcessor extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     console.log("🔥 Job Started");
-    console.log(job)
+    console.log(job);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { jobIdAi, applicationId, candidateId } = job.data;
+    const { jobIdAi, applicationId, candidateId, asset_id } = job.data;
 
     await this.applicationService.updateStatusAi(
       applicationId,
@@ -40,6 +39,7 @@ export class AnalyzeMatchProcessor extends WorkerHost {
           `${this.config.get<string>("ANALYZE_MATCH")}/${candidateId}/analyze_match`,
           {
             job_id: jobIdAi,
+            asset_id,
           },
         ),
       );
@@ -77,7 +77,7 @@ export class AnalyzeMatchProcessor extends WorkerHost {
           StatusAI.FAILED,
         );
       }
-      console.log(error)
+      console.log(error);
       throw error;
     }
   }
