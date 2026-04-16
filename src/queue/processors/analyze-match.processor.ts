@@ -23,6 +23,7 @@ export class AnalyzeMatchProcessor extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     console.log("🔥 Job Started");
+    console.log(job)
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { jobIdAi, applicationId, candidateId } = job.data;
@@ -76,6 +77,7 @@ export class AnalyzeMatchProcessor extends WorkerHost {
           StatusAI.FAILED,
         );
       }
+      console.log(error)
       throw error;
     }
   }
