@@ -30,6 +30,7 @@ import { UserService } from "../Users/user.service";
 import { ApplicantService } from "../applicant/applicant.service";
 import { CompanyService } from "../company/company.service";
 import { IndustryRepository } from "../industry/industry.repository";
+import { IndustryName } from "src/Shared/Enums/industry.enum";
 
 @Injectable()
 export class AuthService {
@@ -97,7 +98,6 @@ export class AuthService {
           { phone, job_title, user, industry: industryR },
           manager,
         );
-
       } else {
         await this.companyService.createCompany({ user }, manager);
       }
@@ -475,10 +475,28 @@ export class AuthService {
     });
 
     const HrefreshToken = await this.hash(refreshToken);
+    await this.dataSource.transaction(async (manager) => {
+      await this.userService.updateAuth(
+        user.id,
+        {
+          role,
+          refreshToken: HrefreshToken,
+        },
+        manager,
+      );
 
-    await this.userService.updateAuth(user.id, {
-      role,
-      refreshToken: HrefreshToken,
+      if (role === RoleUser.APPLICANT) {
+        const industryR = await this.industryRepo.find(IndustryName.AR_VR);
+
+        if (!industryR) throw new BadRequestException("industry not found");
+
+        await this.applicantService.createApplicant(
+          { user, industry: industryR },
+          manager,
+        );
+      } else {
+        await this.companyService.createCompany({ user }, manager);
+      }
     });
 
     return {
