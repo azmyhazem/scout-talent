@@ -8,6 +8,7 @@ import {
 } from "typeorm";
 import { JobApplicant } from "../application/job_applicant.entity";
 import { Applicant } from "../applicant/applicant.entity";
+import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 
 @Entity({ name: "CV" })
 export class CV {
@@ -19,6 +20,16 @@ export class CV {
 
   @Column()
   url: string;
+
+  @Column({
+    type: "enum",
+    enum: StatusAI,
+    default: StatusAI.PENDING,
+  })
+  status: StatusAI;
+
+  @Column({nullable:true})
+  asset_id: string
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;

@@ -6,6 +6,7 @@ import { JobController } from "./job.controller";
 import { UserModule } from "../Users/user.module";
 import { JwtModule } from "@nestjs/jwt";
 import { CompanyModule } from "../company/company.module";
+import { QueueModule } from "src/queue/queue.module";
 
 
 @Module({
@@ -16,6 +17,7 @@ import { CompanyModule } from "../company/company.module";
     TypeOrmModule.forFeature([
       Job,
     ]),
+    QueueModule
   ],
   controllers: [JobController],
   providers: [JobServices],

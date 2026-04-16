@@ -13,6 +13,7 @@ import { CVModule } from "../CV/cv.module";
 import { JwtModule } from "@nestjs/jwt";
 import { OfferController } from "./offer.controller";
 import { ApplicantModule } from "../applicant/applicant.module";
+import { QueueModule } from "src/queue/queue.module";
 
 @Module({
   controllers: [CandidateController ,OfferController],
@@ -21,7 +22,7 @@ import { ApplicantModule } from "../applicant/applicant.module";
   imports: [
     JwtModule,
     forwardRef(() => UserModule),
-    JobModule,
+    forwardRef(()=>JobModule),
     CVModule,
     forwardRef(()=>ApplicantModule),
     TypeOrmModule.forFeature([
@@ -31,6 +32,7 @@ import { ApplicantModule } from "../applicant/applicant.module";
       Reject,
       Interview,
     ]),
+    forwardRef(()=>QueueModule)
   ],
   exports: [ApplicationService],
 })

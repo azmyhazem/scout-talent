@@ -25,6 +25,9 @@ export class Applicant {
   @Column({ nullable: true })
   job_title!: string;
 
+  @Column({ nullable: true })
+  candidateId: string;
+
   @OneToOne(() => User)
   @JoinColumn()
   user!: User;

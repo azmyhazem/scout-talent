@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsISO8601, IsNumber, IsString } from "class-validator";
 import { JobStatus, JobType, WorkMode } from "src/Shared/Enums/job.enum";
+import { Seniority } from "src/Shared/Enums/seniority.enum";
 
 export class addJobDTO {
   @IsString()
@@ -47,6 +48,10 @@ export class addJobDTO {
   @ApiProperty()
   requirements: string;
 
+  @IsString()
+  @ApiProperty()
+  seniority: Seniority;
+
   @IsNumber()
   @ApiProperty()
   positions: number;
@@ -59,5 +64,5 @@ export class addJobDTO {
   @ApiProperty({
     example: "2026-04-01T10:00:00+02:00",
   })
-  deadline:string
+  deadline: string;
 }

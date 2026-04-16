@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CV } from "./cv.entity";
-import { Repository } from "typeorm";
+import { EntityManager, Repository } from "typeorm";
 import { ApplicantService } from "../applicant/applicant.service";
+import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 @Injectable()
 export class CVService {
   constructor(
@@ -17,9 +18,14 @@ export class CVService {
 
     const cv = this.cvRepository.create({ name, url, applicant: user });
 
-    await this.cvRepository.save(cv);
+    const cvN = await this.cvRepository.save(cv);
 
-    return { message: "cv upload successful", cvId: cv.id };
+    return {
+      message: "cv upload successful",
+      cvId: cvN.id,
+      applicantId: user.id,
+      projectId: user.industry.projectId,
+    };
   }
 
   public async find(cvId: string) {
@@ -54,9 +60,29 @@ export class CVService {
     });
     return { message: "delete successful" };
   }
+
   public async findCV(id: string) {
     const cv = await this.cvRepository.findOne({ where: { id } });
 
     return cv;
+  }
+
+  public async updateAssetId(
+    cvId: string,
+    asset_id: string,
+    manager: EntityManager,
+  ) {
+    const repo = manager ? manager.getRepository(CV) : this.cvRepository;
+
+    return repo.update(cvId, { asset_id });
+  }
+
+  public async updateStatue(
+    cvId: string,
+    status: StatusAI,
+    manager?: EntityManager,
+  ) {
+    const repo = manager ? manager.getRepository(CV) : this.cvRepository;
+    return repo.update(cvId, { status });
   }
 }

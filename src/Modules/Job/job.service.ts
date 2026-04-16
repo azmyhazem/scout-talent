@@ -6,12 +6,15 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Job } from "./job.entity";
-import { MoreThan, Repository } from "typeorm";
+import { EntityManager, MoreThan, Repository } from "typeorm";
 import { addJobDTO } from "./dto/addJob.dto";
 import { updateJobDTO } from "./dto/updateJob.dto";
 import { JobStatus } from "src/Shared/Enums/job.enum";
 import { jobStatusDTO } from "./dto/statusJob.dto";
 import { CompanyService } from "../company/company.service";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
+import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 
 @Injectable()
 export class JobServices {
@@ -19,6 +22,9 @@ export class JobServices {
     @InjectRepository(Job) private jobRepository: Repository<Job>,
     @Inject(forwardRef(() => CompanyService))
     private companyService: CompanyService,
+
+    @InjectQueue("upload-job")
+    private upload_job: Queue,
   ) {}
 
   public async findJob(id: string) {
@@ -34,8 +40,8 @@ export class JobServices {
         "job.id",
         "job.title",
         "job.description",
+        'job.jobIdAi',
         "company.id",
-        "company.name",
         "user.name",
       ])
       .getOne();
@@ -76,6 +82,7 @@ export class JobServices {
       responsibilities,
       positions,
       maxApplications,
+      seniority,
     } = dto;
 
     const now = Date.now();
@@ -96,6 +103,7 @@ export class JobServices {
       type,
       workMode,
       skills,
+      seniority,
       responsibilities,
       company,
       positions,
@@ -103,8 +111,35 @@ export class JobServices {
       deadline,
     });
 
-    await this.jobRepository.save(Njob);
+    const job = await this.jobRepository.save(Njob);
 
+    const formattedSkills = skills.reduce(
+      (acc, skill) => {
+        acc[skill] = {
+          level: "Intermediate", // قيمة ثابتة
+        };
+        return acc;
+      },
+      {} as Record<string, { level: string }>,
+    );
+
+    await this.upload_job.add(
+      "job",
+      {
+        jobId: job.id,
+        title,
+        description: `${description}, ${requirements}, ${responsibilities.join(" | ")}`,
+        seniority,
+        required_skills: formattedSkills,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 2000,
+        },
+      },
+    );
     return { message: "add job successful" };
   }
 
@@ -214,6 +249,24 @@ export class JobServices {
     await this.jobRepository.save(job);
 
     return job;
+  }
+
+  public async updateJobIdAi(
+    jobId: string,
+    jobIdAi: string,
+    manager: EntityManager,
+  ) {
+    const repo = manager ? manager.getRepository(Job) : this.jobRepository;
+    return repo.update(jobId, { jobIdAi });
+  }
+
+  public async updateStatusAi(
+    jobId: string,
+    statusAi: StatusAI,
+    manager?: EntityManager,
+  ) {
+    const repo = manager ? manager.getRepository(Job) : this.jobRepository;
+    return repo.update(jobId, { statusAi });
   }
 
   private getDateBeforeMonths(month: number) {

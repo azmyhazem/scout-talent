@@ -11,6 +11,8 @@ import {
 import { User } from "../Users/user.entity";
 import { JobApplicant } from "../application/job_applicant.entity";
 import { Company } from "../company/company.entity";
+import { Seniority } from "src/Shared/Enums/seniority.enum";
+import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 
 @Entity({ name: "jobs" })
 export class Job {
@@ -38,6 +40,15 @@ export class Job {
 
   @Column({ type: "enum", enum: WorkMode })
   workMode: WorkMode;
+
+  @Column({ type: "enum", enum: Seniority })
+  seniority: Seniority;
+
+  @Column({ nullable: true })
+  jobIdAi: string;
+
+  @Column({ type: "enum", enum: StatusAI, default: StatusAI.PENDING })
+  statusAi: StatusAI;
 
   @Column({ type: "text" })
   description: string;

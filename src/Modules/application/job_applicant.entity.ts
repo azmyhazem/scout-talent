@@ -17,6 +17,8 @@ import { JobOffer } from "./jobOffer.entity";
 import { Interview } from "../interview/interviews.entity";
 import { Reject } from "./reject.entity";
 import { Applicant } from "../applicant/applicant.entity";
+import { StatusAI } from "src/Shared/Enums/statusAI.enum";
+import type { AIResult } from "./interface/result.interface";
 
 @Entity({ name: "job_applicant" })
 @Unique(["job", "applicant"])
@@ -29,6 +31,16 @@ export class JobApplicant {
 
   @Column()
   about!: string;
+
+  @Column({
+    type: "enum",
+    enum: StatusAI,
+    default: StatusAI.PENDING,
+  })
+  statusAi: StatusAI;
+
+  @Column({ type: "json", nullable: true })
+  result: AIResult;
 
   @ManyToOne(() => Job, (job) => job.applications)
   job!: Job;

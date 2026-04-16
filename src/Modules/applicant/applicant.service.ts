@@ -35,7 +35,7 @@ export class ApplicantService {
   public async findApplicantWithIdUser(userId: string) {
     const applicant = await this.applicantRepository.findOne({
       where: { user: { id: userId } },
-      relations: ["user"],
+      relations: ["user",'industry'],
     });
 
     return applicant;
@@ -97,7 +97,7 @@ export class ApplicantService {
   public async profileCompleteUser(id: string) {
     const applicant = await this.applicantRepository.findOne({
       where: { user: { id } },
-      relations: ["user" ,"skills" ,"experiences"],
+      relations: ["user", "skills", "experiences"],
     });
 
     if (!applicant) throw new BadRequestException("no user found");
@@ -157,6 +157,18 @@ export class ApplicantService {
     await this.userService.deleteAccount(id);
 
     return { message: "Account deleted successfully" };
+  }
+
+  public async updateCandidataId(
+    applicantId: string,
+    candidateId: string,
+    manger: EntityManager,
+  ) {
+    const repo = manger
+      ? manger.getRepository(Applicant)
+      : this.applicantRepository;
+
+    return repo.update(applicantId, { candidateId });
   }
 
   private totalApplicant(id: string) {

@@ -20,6 +20,10 @@ import { mintesToMilliseconds } from "src/Shared/utils/cookie.util";
 import { JobOffer } from "./jobOffer.entity";
 import { offerRespones } from "./dto/offerRespones.dto";
 import { ApplicantService } from "../applicant/applicant.service";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
+import type { AIResult } from "./interface/result.interface";
+import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 
 @Injectable()
 export class ApplicationService {
@@ -39,6 +43,9 @@ export class ApplicationService {
     private cvService: CVService,
     private jobService: JobServices,
     private applicantService: ApplicantService,
+
+    @InjectQueue("analyze-match")
+    private analyze_match: Queue,
   ) {}
 
   public findOneByUserId(id: string, userId: string) {
@@ -117,7 +124,7 @@ export class ApplicationService {
 
     const { about } = dto;
 
-    await this.dataSource.transaction(async (manager) => {
+    const apps = await this.dataSource.transaction(async (manager) => {
       if (job.applicationsCount >= job.maxApplications) {
         throw new BadRequestException(
           "This job has reached the maximum number of applications and is now closed.",
@@ -132,10 +139,30 @@ export class ApplicationService {
         about,
       });
 
-      await manager.save(jobApp);
+      const application = await manager.save(jobApp);
+
+      return { applicationId: application.id };
     });
 
-    return { message: "application the job successful" };
+    await this.analyze_match.add(
+      "application",
+      {
+        applicationId: apps.applicationId,
+        candidateId: user.candidateId,
+        jobIdAi: job.jobIdAi,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 2000,
+        },
+      },
+    );
+
+    return {
+      message: "application the job successful",
+    };
   }
 
   public async screeningCV(userId: string, id: string) {
@@ -603,6 +630,30 @@ export class ApplicationService {
     if (offers.length === 0) throw new BadRequestException("there is no offer");
 
     return offers;
+  }
+
+  public async updateResult(
+    applicationId: string,
+    result: AIResult,
+    manger: EntityManager,
+  ) {
+    const repo = manger
+      ? manger.getRepository(JobApplicant)
+      : this.jobApplicantRepository;
+
+    return repo.update(applicationId, { result });
+  }
+
+  public async updateStatusAi(
+    applicationId: string,
+    statusAi: StatusAI,
+    manger?: EntityManager,
+  ) {
+    const repo = manger
+      ? manger.getRepository(JobApplicant)
+      : this.jobApplicantRepository;
+
+    return repo.update(applicationId, { statusAi });
   }
 
   private async createInterview(

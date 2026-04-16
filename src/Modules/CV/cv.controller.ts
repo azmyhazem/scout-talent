@@ -23,10 +23,16 @@ import { ApiBody, ApiConsumes, ApiSecurity } from "@nestjs/swagger";
 import { uploadImageDTO } from "./dto/cvUpload.dto";
 import type { Response } from "express";
 import { join } from "path";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 
 @Controller("cv")
 export class CVController {
-  constructor(private cvService: CVService) {}
+  constructor(
+    private cvService: CVService,
+    @InjectQueue("upload-cv")
+    private upload_cv: Queue,
+  ) {}
 
   @Post("/upload-cv")
   @Roles(RoleUser.APPLICANT)
@@ -41,13 +47,27 @@ export class CVController {
   ) {
     if (!file) throw new BadRequestException("no file upload");
 
-    const data = await this.cvService.uploadCV(
-      user.id,
-      file.path,
-      file.originalname,
+    const { message, cvId, applicantId, projectId } =
+      await this.cvService.uploadCV(user.id, file.path, file.originalname);
+
+    await this.upload_cv.add(
+      "cv",
+      { file, cvId, applicantId, projectId },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 2000,
+        },
+      },
     );
 
-    return { data };
+    return {
+      data: {
+        message,
+        cvId,
+      },
+    };
   }
 
   @Get("download/:cvId")

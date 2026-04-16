@@ -16,7 +16,8 @@ import { InterviewModule } from "./Modules/interview/interview.module";
 import { ApplicationModule } from "./Modules/application/application.module";
 import { SpecializationModule } from "./Modules/specialization/specialization.module";
 import { IndustryModule } from "./Modules/industry/industry.module";
-
+import { BullModule } from "@nestjs/bullmq";
+import { QueueModule } from "./queue/queue.module";
 @Module({
   imports: [
     UserModule,
@@ -31,6 +32,7 @@ import { IndustryModule } from "./Modules/industry/industry.module";
     AuthModule,
     InterviewModule,
     ApplicationModule,
+    QueueModule,
     TypeOrmModule.forRoot(dataSourceOptions),
     ConfigModule.forRoot({
       isGlobal: true,
@@ -43,6 +45,11 @@ import { IndustryModule } from "./Modules/industry/industry.module";
         limit: 10,
       },
     ]),
+    BullModule.forRoot({
+      connection: {
+        url: process.env.REDIS_URL,
+      },
+    }),
   ],
 })
 export class AppModule {}

@@ -10,6 +10,9 @@ export class Industry {
   @Column({ unique: true, type: "enum", enum: IndustryName })
   name: IndustryName;
 
+  @Column({ default: 20261 })
+  projectId: number;
+
   @OneToMany(() => Applicant, (app) => app.industry)
   applicant: Applicant[];
 }
