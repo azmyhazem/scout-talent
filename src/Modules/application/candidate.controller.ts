@@ -43,6 +43,7 @@ export class CandidateController {
     );
     return { data };
   }
+
   @Get("company/jobsApply")
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
@@ -59,6 +60,24 @@ export class CandidateController {
       q,
       status,
     );
+    return { data };
+  }
+
+  @Get("company/jobsApply/:id")
+  @Roles(RoleUser.COMPANY)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  @ApiQuery({ name: "q", required: false, type: String })
+  @ApiQuery({ name: "s", required: false, enum: CandidateStatus })
+  public async GetJobByCompanyApplyById(
+    @currentUser() company: JwtPayloadType,
+    @Param("id") id: string,
+  ) {
+    const data = await this.applicationService.GetJobByCompanyApplyById(
+      company.id,
+      id,
+    );
+
     return { data };
   }
 
@@ -132,13 +151,14 @@ export class CandidateController {
     @Query("jobType") jobType?: JobType,
     @Query("workMode") workMode?: WorkMode,
   ) {
-    const jobApply = await this.applicationService.alljobsApplicantionByApplicant(
-      user.id,
-      search,
-      location,
-      jobType,
-      workMode,
-    );
+    const jobApply =
+      await this.applicationService.alljobsApplicantionByApplicant(
+        user.id,
+        search,
+        location,
+        jobType,
+        workMode,
+      );
     return {
       data: jobApply,
     };
@@ -152,14 +172,11 @@ export class CandidateController {
     @currentUser() user: JwtPayloadType,
     @Param("id") id: string,
   ) {
-    const jobApply = await this.applicationService.jobApplicantionByApplicantByID(
-      user.id,
-      id,
-    );
+    const jobApply =
+      await this.applicationService.jobApplicantionByApplicantByID(user.id, id);
 
     return {
       data: jobApply,
     };
   }
-
 }

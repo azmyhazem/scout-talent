@@ -107,6 +107,38 @@ export class ApplicationService {
     return { jobaApply: await jobsApply.getMany() };
   }
 
+  public async GetJobByCompanyApplyById(
+    userId: string,
+    applicationId:string
+  ) {
+    const jobsApply = this.jobApplicantRepository
+      .createQueryBuilder("jobApply")
+
+      .leftJoin("jobApply.applicant", "applicant")
+      .leftJoin("applicant.user", "userA")
+      .leftJoin("jobApply.job", "job")
+      .leftJoin("job.company", "company")
+      .leftJoin("company.user", "user")
+
+      .select([
+        "jobApply.id",
+        "jobApply.status",
+        "jobApply.result",
+
+        "job.id",
+        "job.title",
+        "job.skills",
+
+        "applicant.id",
+        "userA.name",
+        "applicant.job_title",
+      ])
+
+      .where("user.id = :userId AND jobApply.id= :applicationId", { userId,  applicationId});
+
+    return { jobApply: await jobsApply.getOne()};
+  }
+
   public async applyJob(
     userId: string,
     jobId: string,
