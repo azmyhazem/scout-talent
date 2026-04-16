@@ -52,4 +52,8 @@ import { QueueModule } from "./queue/queue.module";
     }),
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(){
+    console.log(process.env.REDIS_URL)
+  }
+}
