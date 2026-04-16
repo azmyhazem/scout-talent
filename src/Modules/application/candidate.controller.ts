@@ -67,8 +67,6 @@ export class CandidateController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
-  @ApiQuery({ name: "q", required: false, type: String })
-  @ApiQuery({ name: "s", required: false, enum: CandidateStatus })
   public async GetJobByCompanyApplyById(
     @currentUser() company: JwtPayloadType,
     @Param("id") id: string,
