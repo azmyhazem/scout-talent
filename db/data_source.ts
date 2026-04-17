@@ -18,6 +18,7 @@ import { Applicant } from "src/Modules/applicant/applicant.entity";
 import { Company } from "src/Modules/company/company.entity";
 import { Specialization } from "src/Modules/specialization/specialization.entity";
 import { Industry } from "src/Modules/industry/industry.entity";
+import { RecommendJobs } from "src/Modules/recommend-ai/recommend-job.entity";
 config({ path: ".env" });
 
 export const dataSourceOptions: DataSourceOptions = {
@@ -43,6 +44,7 @@ export const dataSourceOptions: DataSourceOptions = {
     Reject,
     FeedBack,
     CancelInterview,
+    RecommendJobs
   ],
   migrations: ["dist/db/migrations/*.js"],
 };

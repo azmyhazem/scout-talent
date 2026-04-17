@@ -28,8 +28,11 @@ export class CV {
   })
   status: StatusAI;
 
-  @Column({nullable:true})
-  asset_id: string
+  @Column({ nullable: true })
+  asset_id: string;
+
+  @Column()
+  isPrimary: boolean;
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;

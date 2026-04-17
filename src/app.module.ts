@@ -46,13 +46,14 @@ import { QueueModule } from "./queue/queue.module";
       },
     ]),
     BullModule.forRoot({
+      // connection: {
+      //   host: "localhost",
+      //   port: 6379,
+      // },
       connection: {
         url: process.env.REDIS_URL,
       },
     }),
   ],
 })
-export class AppModule {
-  constructor(){
-console.log('REDIS_URL:', process.env.REDIS_URL);  }
-}
+export class AppModule {}

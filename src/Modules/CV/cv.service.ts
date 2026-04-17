@@ -15,8 +15,30 @@ export class CVService {
     const user = await this.applicantService.findApplicantWithIdUser(userId);
 
     if (!user) throw new BadRequestException("user not found");
+    const count = await this.cvRepository.count({
+      where: {
+        applicant: {
+          id: user.id,
+        },
+      },
+    });
 
-    const cv = this.cvRepository.create({ name, url, applicant: user });
+    if (count >= 3) {
+      throw new BadRequestException("You reached max CV limit");
+    }
+
+    let isPrimary = false;
+
+    if (count === 0) {
+      isPrimary = true;
+    }
+
+    const cv = this.cvRepository.create({
+      name,
+      url,
+      applicant: user,
+      isPrimary,
+    });
 
     const cvN = await this.cvRepository.save(cv);
 
@@ -35,6 +57,24 @@ export class CVService {
 
     if (!cv) throw new BadRequestException("cv not found");
     return { url: cv.url };
+  }
+
+  public async selectPrimaryCV(userId: string, cvId: string) {
+    const cv = await this.findCV(cvId);
+
+    if (cv?.isPrimary === true) {
+      throw new BadRequestException("this. cv id already primary");
+    }
+
+    const { cvs } = await this.getAllCVFromUser(userId);
+
+    for (const cv of cvs) {
+      await this.cvRepository.update({ id: cv.id }, { isPrimary: false });
+    }
+
+    await this.cvRepository.update({ id: cvId }, { isPrimary: true });
+
+    return this.getAllCVFromUser(userId);
   }
 
   public async getAllCVFromUser(userId: string) {

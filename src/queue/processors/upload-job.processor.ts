@@ -22,8 +22,6 @@ export class JobProcessor extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     console.log("🔥 Job Started");
-        console.log(job)
-
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { jobId, title, description, seniority, required_skills } = job.data;
@@ -39,8 +37,6 @@ export class JobProcessor extends WorkerHost {
           required_skills,
         }),
       );
-
-      console.log("AI Response:", response.data);
 
       await this.dataSource.transaction(async (manager) => {
         await this.jobService.updateJobIdAi(

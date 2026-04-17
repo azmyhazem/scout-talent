@@ -70,6 +70,17 @@ export class CVController {
     };
   }
 
+  @Get("isPrimary/:cvId")
+  @Roles(RoleUser.APPLICANT)
+  @UseGuards(AuthGuard)
+  public async selectPrimaryCV(
+    @Param("cvId") cvId: string,
+    @currentUser() user: JwtPayloadType,
+  ) {
+    const data = await this.cvService.selectPrimaryCV(user.id, cvId);
+    return { data };
+  }
+
   @Get("download/:cvId")
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)

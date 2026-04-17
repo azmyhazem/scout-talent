@@ -7,7 +7,6 @@ import { ApplicantService } from "../applicant/applicant.service";
 
 @Injectable()
 export class SkillService {
-
   constructor(
     @InjectRepository(Skill)
     private skillRepository: Repository<Skill>,
@@ -28,7 +27,9 @@ export class SkillService {
 
     await this.skillRepository.save(NSkill);
 
-    return { message: "add successful" };
+    const { skills } = await this.getAllSkillsByApplicant(user.id);
+
+    return { message: "add successful", skills };
   }
 
   public async deleteSkill(id: string, userId: string) {
@@ -44,4 +45,15 @@ export class SkillService {
     return { message: "delete successful" };
   }
 
+  private async getAllSkillsByApplicant(applicantId: string) {
+    const skills = await this.skillRepository.find({
+      where: {
+        applicant: {
+          id: applicantId,
+        },
+      },
+    });
+
+    return { skills };
+  }
 }

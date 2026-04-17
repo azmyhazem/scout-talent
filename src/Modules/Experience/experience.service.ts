@@ -32,7 +32,11 @@ export class ExperienceService {
 
     await this.experienceRepository.save(nExper);
 
-    return { message: "add experience successful" };
+    const { experiences } = await this.getAllExperienceByApplicant(
+      applicant.id,
+    );
+
+    return { message: "add experience successful", experiences };
   }
 
   public async updateExperience(dto: updateExperienceDTO, id: string) {
@@ -57,5 +61,17 @@ export class ExperienceService {
     await this.experienceRepository.delete(id);
 
     return { message: "delete experience successful" };
+  }
+
+  private async getAllExperienceByApplicant(applicantId: string) {
+    const experiences = await this.experienceRepository.find({
+      where: {
+        applicant: {
+          id: applicantId,
+        },
+      },
+    });
+
+    return { experiences };
   }
 }

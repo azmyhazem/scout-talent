@@ -26,7 +26,6 @@ export class CVProcessor extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     console.log("🔥 Job Started");
-    console.log(job)
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { file, cvId, applicantId, projectId } = job.data;
@@ -56,7 +55,7 @@ export class CVProcessor extends WorkerHost {
           },
         ),
       );
-      console.log("AI Response:", response.data);
+
       await this.dataSource.transaction(async (manager) => {
         await this.cvService.updateAssetId(
           cvId,

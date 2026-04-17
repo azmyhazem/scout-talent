@@ -22,7 +22,6 @@ export class AnalyzeMatchProcessor extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     console.log("🔥 Job Started");
-    console.log(job);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { jobIdAi, applicationId, candidateId, asset_id } = job.data;
@@ -32,7 +31,6 @@ export class AnalyzeMatchProcessor extends WorkerHost {
       StatusAI.ACTIVE,
     );
 
-    console.log(jobIdAi, applicationId, candidateId);
     try {
       const response = await firstValueFrom(
         this.httpService.post(
@@ -43,8 +41,6 @@ export class AnalyzeMatchProcessor extends WorkerHost {
           },
         ),
       );
-
-      console.log("AI Response:", response.data);
 
       await this.dataSource.transaction(async (manager) => {
         await this.applicationService.updateResult(
