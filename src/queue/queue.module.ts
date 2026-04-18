@@ -15,6 +15,7 @@ import { ApplicationModule } from "src/Modules/application/application.module";
     BullModule.registerQueue({ name: "upload-cv" }),
     BullModule.registerQueue({ name: "upload-job" }),
     BullModule.registerQueue({ name: "analyze-match" }),
+    BullModule.registerQueue({ name: "recommend-jobs" }),
     HttpModule,
     forwardRef(() => CVModule),
     ApplicantModule,

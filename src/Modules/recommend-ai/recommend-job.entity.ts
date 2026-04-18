@@ -9,6 +9,7 @@ import {
 import { Applicant } from "../applicant/applicant.entity";
 import { CV } from "../CV/cv.entity";
 import type { JobRecommendation } from "./interface/recommend-job.interface";
+import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 
 @Entity({ name: "recommend-jobs" })
 @Unique(["asset", "candidate"])
@@ -21,6 +22,9 @@ export class RecommendJobs {
 
   @Column({ type: "timestamptz" })
   generatedAt: Date;
+
+  @Column({ type: "enum", enum: StatusAI, default: StatusAI.PENDING })
+  status: StatusAI;
 
   @OneToOne(() => Applicant)
   @JoinColumn()

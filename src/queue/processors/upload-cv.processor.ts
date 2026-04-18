@@ -1,5 +1,5 @@
-import { Processor, WorkerHost } from "@nestjs/bullmq";
-import { Job } from "bullmq";
+import { InjectQueue, Processor, WorkerHost } from "@nestjs/bullmq";
+import { Job, Queue } from "bullmq";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import * as fs from "fs";
@@ -20,6 +20,8 @@ export class CVProcessor extends WorkerHost {
     private config: ConfigService,
     @InjectDataSource()
     private dataSource: DataSource,
+    @InjectQueue("recommend-jobs")
+    private recommendJob: Queue,
   ) {
     super();
   }
@@ -71,6 +73,21 @@ export class CVProcessor extends WorkerHost {
 
         await this.cvService.updateStatue(cvId, StatusAI.COMPLETED, manager);
       });
+
+      await this.recommendJob.add(
+        "row",
+        {
+          candidate_id: response.data.candidate_id,
+          asset_id: response.data.asset_id,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: "exponential",
+            delay: 2000,
+          },
+        },
+      );
 
       console.log("✅ Job Done");
 
