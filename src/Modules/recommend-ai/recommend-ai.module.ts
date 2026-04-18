@@ -5,6 +5,7 @@ import { RecommendJobs } from "./recommend-job.entity";
 
 @Module({
   providers: [RecommendJobService],
-  imports:[TypeOrmModule.forFeature([RecommendJobs])]
+  imports: [TypeOrmModule.forFeature([RecommendJobs])],
+  exports: [RecommendJobService],
 })
 export class RecommendAiModule {}

@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
@@ -17,14 +18,17 @@ export class RecommendJobs {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: "jsonb" })
+  @Column({ type: "jsonb", nullable: true })
   recommends: JobRecommendation[];
 
-  @Column({ type: "timestamptz" })
-  generatedAt: Date;
+  @Column({ type: "timestamptz" ,nullable: true})
+  generatedAiAt: Date;
 
   @Column({ type: "enum", enum: StatusAI, default: StatusAI.PENDING })
   status: StatusAI;
+
+  @CreateDateColumn({ type: "timestamptz" })
+  createdAt: Date;
 
   @OneToOne(() => Applicant)
   @JoinColumn()

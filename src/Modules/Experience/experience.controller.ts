@@ -49,8 +49,11 @@ export class ExperienceController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
-  public async deleteExperience(@Param("id") id: string) {
-    const data = await this.experienceService.deleteExperience(id);
+  public async deleteExperience(
+    @Param("id") id: string,
+    @currentUser() user: JwtPayloadType,
+  ) {
+    const data = await this.experienceService.deleteExperience(id, user.id);
     return { data };
   }
 }

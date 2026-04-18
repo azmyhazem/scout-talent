@@ -27,7 +27,7 @@ export class SkillService {
 
     await this.skillRepository.save(NSkill);
 
-    const { skills } = await this.getAllSkillsByApplicant(user.id);
+    const { skills } = await this.getAllSkillsByApplicant(Id);
 
     return { message: "add successful", skills };
   }
@@ -35,21 +35,23 @@ export class SkillService {
   public async deleteSkill(id: string, userId: string) {
     const result = await this.skillRepository.delete({
       id,
-      applicant: { id: userId },
+      applicant: { user: { id: userId } },
     });
 
     if (result.affected === 0) {
       throw new BadRequestException("Skill not found");
     }
 
-    return { message: "delete successful" };
+    const { skills } = await this.getAllSkillsByApplicant(userId);
+
+    return { message: "delete successful", skills };
   }
 
-  private async getAllSkillsByApplicant(applicantId: string) {
+  private async getAllSkillsByApplicant(userId: string) {
     const skills = await this.skillRepository.find({
       where: {
         applicant: {
-          id: applicantId,
+          user: { id: userId },
         },
       },
     });

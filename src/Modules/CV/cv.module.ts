@@ -16,7 +16,7 @@ import { QueueModule } from "src/queue/queue.module";
   imports: [
     forwardRef(() => UserModule),
     JwtModule,
-    ApplicantModule,
+    forwardRef(()=>ApplicantModule),
     TypeOrmModule.forFeature([CV]),
     MulterModule.register({
       storage: diskStorage({

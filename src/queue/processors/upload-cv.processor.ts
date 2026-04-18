@@ -10,6 +10,7 @@ import { ApplicantService } from "src/Modules/applicant/applicant.service";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
 import { ConfigService } from "@nestjs/config";
+import { RecommendJobService } from "src/Modules/recommend-ai/recommend-job.service";
 
 @Processor("upload-cv")
 export class CVProcessor extends WorkerHost {
@@ -22,6 +23,7 @@ export class CVProcessor extends WorkerHost {
     private dataSource: DataSource,
     @InjectQueue("recommend-jobs")
     private recommendJob: Queue,
+    private recommendJobService: RecommendJobService,
   ) {
     super();
   }
@@ -30,7 +32,7 @@ export class CVProcessor extends WorkerHost {
     console.log("🔥 Job Started");
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { file, cvId, applicantId, projectId } = job.data;
+    const { file, cvId, applicantId, projectId, candidateId } = job.data;
 
     if (!file) {
       throw new Error("No file found in job data");
@@ -46,6 +48,10 @@ export class CVProcessor extends WorkerHost {
         file.originalname,
       );
 
+      if (candidateId) {
+        formData.append("candidate_id", candidateId);
+      }
+
       const response = await firstValueFrom(
         this.httpService.post(
           `${this.config.get<string>("UPLOAD_CV")}/${projectId}`,
@@ -58,37 +64,55 @@ export class CVProcessor extends WorkerHost {
         ),
       );
 
-      await this.dataSource.transaction(async (manager) => {
-        await this.cvService.updateAssetId(
+      const recommend = await this.dataSource.transaction(async (manager) => {
+        const cvN = await this.cvService.updateAssetId(
           cvId,
           response.data.asset_id,
           manager,
         );
 
-        await this.applicantService.updateCandidataId(
+        const candidate = await this.applicantService.updateCandidataId(
           applicantId,
           response.data.candidate_id,
           manager,
         );
 
-        await this.cvService.updateStatue(cvId, StatusAI.COMPLETED, manager);
+        const asset = await this.cvService.updateStatue(
+          cvId,
+          StatusAI.COMPLETED,
+          manager,
+        );
+
+        if (!asset.isPrimary) {
+          return { recommend: null };
+        }
+        const recommend = await this.recommendJobService.create(
+          {
+            candidate,
+            asset,
+          },
+          manager,
+        );
+        return { recommend };
       });
 
-      await this.recommendJob.add(
-        "row",
-        {
-          candidate_id: response.data.candidate_id,
-          asset_id: response.data.asset_id,
-        },
-        {
-          attempts: 3,
-          backoff: {
-            type: "exponential",
-            delay: 2000,
+      if (recommend.recommend) {
+        await this.recommendJob.add(
+          "row",
+          {
+            recommendId: recommend.recommend.id,
+            candidate_id: response.data.candidate_id,
+            asset_id: response.data.asset_id,
           },
-        },
-      );
-
+          {
+            attempts: 3,
+            backoff: {
+              type: "exponential",
+              delay: 2000,
+            },
+          },
+        );
+      }
       console.log("✅ Job Done");
 
       return response.data;

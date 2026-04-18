@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Job } from "./job.entity";
-import { EntityManager, MoreThan, Repository } from "typeorm";
+import { EntityManager, In, MoreThan, Repository } from "typeorm";
 import { addJobDTO } from "./dto/addJob.dto";
 import { updateJobDTO } from "./dto/updateJob.dto";
 import { JobStatus } from "src/Shared/Enums/job.enum";
@@ -22,10 +22,11 @@ export class JobServices {
     @InjectRepository(Job) private jobRepository: Repository<Job>,
     @Inject(forwardRef(() => CompanyService))
     private companyService: CompanyService,
-
     @InjectQueue("upload-job")
     private upload_job: Queue,
   ) {}
+
+  private lastJobCreatedAt: Date | null = null;
 
   public async findJob(id: string) {
     const job = await this.jobRepository
@@ -40,7 +41,7 @@ export class JobServices {
         "job.id",
         "job.title",
         "job.description",
-        'job.jobIdAi',
+        "job.jobIdAi",
         "company.id",
         "user.name",
       ])
@@ -113,6 +114,8 @@ export class JobServices {
 
     const job = await this.jobRepository.save(Njob);
 
+    this.lastJobCreatedAt = new Date();
+
     await this.upload_job.add(
       "job",
       {
@@ -130,6 +133,7 @@ export class JobServices {
         },
       },
     );
+
     return { message: "add job successful" };
   }
 
@@ -172,6 +176,14 @@ export class JobServices {
       throw new BadRequestException("not found job");
     }
     return job;
+  }
+
+  public async getJobsByJobIdAi(jobIdAI: number[]) {
+    return this.jobRepository.find({
+      where: {
+        jobIdAi: In(jobIdAI),
+      },
+    });
   }
 
   public async updateJob(companyId: string, id: string, dto: updateJobDTO) {

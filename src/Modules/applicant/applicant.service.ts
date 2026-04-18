@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from "@nestjs/common";
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { Applicant } from "./applicant.entity";
 import { DataSource, EntityManager, MoreThan, Repository } from "typeorm";
@@ -6,6 +11,9 @@ import { updateApplicantDTO } from "./dto/updateApplicant.dto";
 import { UserService } from "../Users/user.service";
 import { JobApplicant } from "../application/job_applicant.entity";
 import { CandidateStatus } from "src/Shared/Enums/candidateStatus.enum";
+import { RecommendJobService } from "../recommend-ai/recommend-job.service";
+import { CVService } from "../CV/cv.service";
+import { JobServices } from "../Job/job.service";
 
 @Injectable()
 export class ApplicantService {
@@ -17,6 +25,10 @@ export class ApplicantService {
     @InjectRepository(JobApplicant)
     private jobApplicantRepository: Repository<JobApplicant>,
     private userService: UserService,
+    private recommendJobService: RecommendJobService,
+    @Inject(forwardRef(() => CVService))
+    private cvServcie: CVService,
+    private jobService: JobServices,
   ) {}
 
   public async createApplicant(
@@ -35,7 +47,7 @@ export class ApplicantService {
   public async findApplicantWithIdUser(userId: string) {
     const applicant = await this.applicantRepository.findOne({
       where: { user: { id: userId } },
-      relations: ["user",'industry'],
+      relations: ["user", "industry", "cvs"],
     });
 
     return applicant;
@@ -159,6 +171,41 @@ export class ApplicantService {
     return { message: "Account deleted successfully" };
   }
 
+  public async getJobsRecommend(userId: string) {
+    const applicant = await this.findApplicantWithIdUser(userId);
+
+    if (!applicant) throw new BadRequestException("no applicant found");
+
+    const cv = await this.cvServcie.getCvPrimary(applicant.id);
+    if (!cv) throw new BadRequestException("no applicant found");
+
+    const recommendJob = await this.recommendJobService.findByCandidateAndAsset(
+      applicant.id,
+      cv.id,
+    );
+
+    if (!recommendJob) throw new BadRequestException("no recommend");
+
+    const result = recommendJob.recommends;
+
+    const jobIds = result.map((item) => Number(item.job_id));
+
+    const jobs = await this.jobService.getJobsByJobIdAi(jobIds);
+
+    const jobsMap = new Map(jobs.map((job) => [job.jobIdAi, job]));
+
+    const resultToltal = result.map((item) => {
+      const job = jobsMap.get(String(item.job_id));
+
+      return {
+        ...job,
+        ...item,
+      };
+    });
+
+    return { data: resultToltal };
+  }
+
   public async updateCandidataId(
     applicantId: string,
     candidateId: string,
@@ -168,7 +215,15 @@ export class ApplicantService {
       ? manger.getRepository(Applicant)
       : this.applicantRepository;
 
-    return repo.update(applicantId, { candidateId });
+    const applicant = await this.applicantRepository.findOne({
+      where: { id: applicantId },
+    });
+
+    if (!applicant) throw new BadRequestException("no user found");
+
+    applicant.candidateId = candidateId;
+
+    return repo.save(applicant);
   }
 
   private totalApplicant(id: string) {

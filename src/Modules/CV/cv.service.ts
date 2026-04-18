@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CV } from "./cv.entity";
 import { EntityManager, Repository } from "typeorm";
@@ -8,6 +13,7 @@ import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 export class CVService {
   constructor(
     @InjectRepository(CV) private cvRepository: Repository<CV>,
+    @Inject(forwardRef(() => ApplicantService))
     private applicantService: ApplicantService,
   ) {}
 
@@ -28,6 +34,7 @@ export class CVService {
     }
 
     let isPrimary = false;
+    const candidateId = user.candidateId;
 
     if (count === 0) {
       isPrimary = true;
@@ -47,6 +54,7 @@ export class CVService {
       cvId: cvN.id,
       applicantId: user.id,
       projectId: user.industry.projectId,
+      candidateId,
     };
   }
 
@@ -101,8 +109,10 @@ export class CVService {
     return { message: "delete successful" };
   }
 
-  public async findCV(id: string) {
-    const cv = await this.cvRepository.findOne({ where: { id } });
+  public async findCV(id: string, manager?: EntityManager) {
+    const repo = manager ? manager.getRepository(CV) : this.cvRepository;
+
+    const cv = await repo.findOne({ where: { id } });
 
     return cv;
   }
@@ -113,8 +123,13 @@ export class CVService {
     manager: EntityManager,
   ) {
     const repo = manager ? manager.getRepository(CV) : this.cvRepository;
+    const cv = await this.findCV(cvId);
 
-    return repo.update(cvId, { asset_id });
+    if (!cv) throw new BadRequestException("cv not found");
+
+    cv.asset_id = asset_id;
+    const cvn = await repo.save(cv);
+    return cvn;
   }
 
   public async updateStatue(
@@ -123,6 +138,26 @@ export class CVService {
     manager?: EntityManager,
   ) {
     const repo = manager ? manager.getRepository(CV) : this.cvRepository;
-    return repo.update(cvId, { status });
+
+    const cv = await this.findCV(cvId, manager);
+
+    if (!cv) throw new BadRequestException("cv not found");
+
+    cv.status = status;
+
+    return repo.save(cv);
+  }
+
+  public async getCvPrimary(applicantId: string) {
+    const cv = await this.cvRepository.findOne({
+      where: {
+        applicant: {
+          id: applicantId,
+        },
+        isPrimary: true,
+      },
+    });
+
+    return cv;
   }
 }

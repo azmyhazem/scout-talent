@@ -8,16 +8,13 @@ import { JwtModule } from "@nestjs/jwt";
 import { CompanyModule } from "../company/company.module";
 import { QueueModule } from "src/queue/queue.module";
 
-
 @Module({
   imports: [
     forwardRef(() => UserModule),
-    forwardRef(()=>CompanyModule),
+    forwardRef(() => CompanyModule),
     JwtModule,
-    TypeOrmModule.forFeature([
-      Job,
-    ]),
-    QueueModule
+    TypeOrmModule.forFeature([Job]),
+    QueueModule,
   ],
   controllers: [JobController],
   providers: [JobServices],

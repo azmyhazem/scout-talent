@@ -6,13 +6,13 @@ import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
 import { ConfigService } from "@nestjs/config";
 import { firstValueFrom } from "rxjs";
-import { ApplicationService } from "src/Modules/application/application.service";
+import { RecommendJobService } from "src/Modules/recommend-ai/recommend-job.service";
 
 @Processor("recommend-jobs")
 export class RecommendJobProcessor extends WorkerHost {
   constructor(
     private readonly httpService: HttpService,
-    private applicationService: ApplicationService,
+    private recommendJobService: RecommendJobService,
     private config: ConfigService,
     @InjectDataSource()
     private dataSource: DataSource,
@@ -24,33 +24,32 @@ export class RecommendJobProcessor extends WorkerHost {
     console.log("🔥 Job Started");
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { candidateId, asset_id } = job.data;
+    const { recommendId, asset_id, candidate_id } = job.data;
 
-    await this.applicationService.updateStatusAi(
-      applicationId,
-      StatusAI.ACTIVE,
-    );
+    console.log(recommendId, asset_id, candidate_id)
+    await this.recommendJobService.updateStatus(recommendId, StatusAI.ACTIVE);
 
     try {
       const response = await firstValueFrom(
         this.httpService.post(
-          `${this.config.get<string>("ANALYZE_MATCH")}/${candidateId}/analyze_match`,
+          `${this.config.get<string>("RECOMMEND_JOB")}/${candidate_id}/recommend_jobs`,
           {
-            job_id: jobIdAi,
+            limit: 2,
             asset_id,
           },
         ),
       );
+      console.log(response.data)
 
       await this.dataSource.transaction(async (manager) => {
-        await this.applicationService.updateResult(
-          applicationId,
+        await this.recommendJobService.updateRecommends(
+          recommendId,
           response.data.results,
           manager,
         );
 
-        await this.applicationService.updateStatusAi(
-          applicationId,
+        await this.recommendJobService.updateStatus(
+          recommendId,
           StatusAI.COMPLETED,
           manager,
         );
@@ -63,13 +62,13 @@ export class RecommendJobProcessor extends WorkerHost {
       const maxAttempts = job.opts.attempts ?? 1;
 
       if (job.attemptsMade < maxAttempts) {
-        await this.applicationService.updateStatusAi(
-          applicationId,
+        await this.recommendJobService.updateStatus(
+          recommendId,
           StatusAI.RETRYING,
         );
       } else {
-        await this.applicationService.updateStatusAi(
-          applicationId,
+        await this.recommendJobService.updateStatus(
+          recommendId,
           StatusAI.FAILED,
         );
       }

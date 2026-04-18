@@ -45,6 +45,15 @@ export class ApplicantController {
     };
   }
 
+  @Get("recommend/job")
+  @Roles(RoleUser.APPLICANT)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  public async recommendJob(@currentUser() payload: JwtPayloadType) {
+    const result = await this.applicantService.getJobsRecommend(payload.id);
+    return result;
+  }
+
   @Patch("basic_info")
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)

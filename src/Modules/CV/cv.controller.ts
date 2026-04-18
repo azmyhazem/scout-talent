@@ -47,12 +47,12 @@ export class CVController {
   ) {
     if (!file) throw new BadRequestException("no file upload");
 
-    const { message, cvId, applicantId, projectId } =
+    const { message, cvId, applicantId, projectId, candidateId } =
       await this.cvService.uploadCV(user.id, file.path, file.originalname);
 
     await this.upload_cv.add(
       "cv",
-      { file, cvId, applicantId, projectId },
+      { file, cvId, applicantId, projectId, candidateId },
       {
         attempts: 3,
         backoff: {

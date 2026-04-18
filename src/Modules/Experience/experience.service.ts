@@ -42,25 +42,35 @@ export class ExperienceService {
   public async updateExperience(dto: updateExperienceDTO, id: string) {
     const experience = await this.experienceRepository.findOne({
       where: { id },
+      relations: ["applicant"],
     });
 
     if (!experience) throw new BadRequestException("no experience found");
 
     await this.experienceRepository.update(id, dto);
 
-    return { message: "update experience successful" };
+    const { experiences } = await this.getAllExperienceByApplicant(
+      experience.applicant.id,
+    );
+
+    return { message: "update experience successful", experiences };
   }
 
-  public async deleteExperience(id: string) {
+  public async deleteExperience(id: string, userId: string) {
     const experience = await this.experienceRepository.findOne({
-      where: { id },
+      where: { id, applicant: { user: { id: userId } } },
+      relations: ["applicant"],
     });
 
     if (!experience) throw new BadRequestException("no experience found");
 
     await this.experienceRepository.delete(id);
 
-    return { message: "delete experience successful" };
+    const { experiences } = await this.getAllExperienceByApplicant(
+      experience.applicant.id,
+    );
+
+    return { message: "delete experience successful", experiences };
   }
 
   private async getAllExperienceByApplicant(applicantId: string) {
