@@ -35,6 +35,18 @@ export class JobController {
     return { data };
   }
 
+  @Get("recommend/candidate/:jobId")
+  @Roles(RoleUser.COMPANY)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  public async getRecommendJob(
+    @Param("jobId") jobId: string,
+    @currentUser() company: JwtPayloadType,
+  ) {
+    const data = await this.jobService.getRecommendCandidate(company.id, jobId);
+    return { data };
+  }
+
   @Get("allJob")
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)

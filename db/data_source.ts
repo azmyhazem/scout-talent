@@ -18,13 +18,17 @@ import { Applicant } from "src/Modules/applicant/applicant.entity";
 import { Company } from "src/Modules/company/company.entity";
 import { Specialization } from "src/Modules/specialization/specialization.entity";
 import { Industry } from "src/Modules/industry/industry.entity";
-import { RecommendJobs } from "src/Modules/recommend-ai/recommend-job.entity";
+import { RecommendJobs } from "src/Modules/recommend-ai-cv/recommend-job.entity";
+import { RecommendCandidate } from "src/Modules/recommend-ai-company/recommend-candidate.entity";
+import { RecommendationBatchCV } from "src/Modules/recommend-ai-cv/recommendation-batch-cv.entity";
+import { RecommendationBatchJob } from "src/Modules/recommend-ai-company/recommendation-batch-job.entity";
+
 config({ path: ".env" });
 
 export const dataSourceOptions: DataSourceOptions = {
   type: "postgres",
   url: process.env.DB_URL,
-  synchronize:false,
+  synchronize: false,
   entities: [
     User,
     Applicant,
@@ -44,7 +48,10 @@ export const dataSourceOptions: DataSourceOptions = {
     Reject,
     FeedBack,
     CancelInterview,
-    RecommendJobs
+    RecommendJobs,
+    RecommendCandidate,
+    RecommendationBatchCV,
+    RecommendationBatchJob,
   ],
   migrations: ["dist/db/migrations/*.js"],
 };

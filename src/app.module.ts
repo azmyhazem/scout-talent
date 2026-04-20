@@ -18,7 +18,7 @@ import { SpecializationModule } from "./Modules/specialization/specialization.mo
 import { IndustryModule } from "./Modules/industry/industry.module";
 import { BullModule } from "@nestjs/bullmq";
 import { QueueModule } from "./queue/queue.module";
-import { RecommendAiModule } from "./Modules/recommend-ai/recommend-ai.module";
+import { RecommendAiModule } from "./Modules/recommend-ai-cv/recommend-ai-cv.module";
 @Module({
   imports: [
     UserModule,

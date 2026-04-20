@@ -8,11 +8,15 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
-import { User } from "../Users/user.entity";
 import { JobApplicant } from "../application/job_applicant.entity";
 import { Company } from "../company/company.entity";
 import { Seniority } from "src/Shared/Enums/seniority.enum";
 import { StatusAI } from "src/Shared/Enums/statusAI.enum";
+import { RecommendJobs } from "../recommend-ai-cv/recommend-job.entity";
+import { Industry } from "../industry/industry.entity";
+import {
+  RecommendationBatchJob,
+} from "../recommend-ai-company/recommendation-batch-job.entity";
 
 @Entity({ name: "jobs" })
 export class Job {
@@ -88,6 +92,15 @@ export class Job {
   @ManyToOne(() => Company, (com) => com.jobs, { eager: true })
   company: Company;
 
+  @ManyToOne(() => Industry, (ind) => ind.applicant)
+  industry!: Industry;
+
   @OneToMany(() => JobApplicant, (jobApplicant) => jobApplicant.job)
   applications: JobApplicant[];
+
+  @OneToMany(() => RecommendJobs, (rec) => rec.job)
+  recommendation: RecommendJobs[];
+
+  @OneToMany(() => RecommendationBatchJob, (rec) => rec.job)
+  batches: RecommendationBatchJob[];
 }

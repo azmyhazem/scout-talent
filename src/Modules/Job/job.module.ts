@@ -7,6 +7,8 @@ import { UserModule } from "../Users/user.module";
 import { JwtModule } from "@nestjs/jwt";
 import { CompanyModule } from "../company/company.module";
 import { QueueModule } from "src/queue/queue.module";
+import { IndustryModule } from "../industry/industry.module";
+import { RecommendAiJobModule } from "../recommend-ai-company/recommend-ai-company.module";
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { QueueModule } from "src/queue/queue.module";
     JwtModule,
     TypeOrmModule.forFeature([Job]),
     QueueModule,
+    IndustryModule,
+    RecommendAiJobModule
   ],
   controllers: [JobController],
   providers: [JobServices],

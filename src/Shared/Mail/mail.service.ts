@@ -14,7 +14,6 @@ export class MailService {
       to: email,
       from: this.config.get<string>("SENDGRID_FROM_EMAIL")!,
       templateId: this.config.get<string>("SENDGRID_VERIFY_TEMPLATE_ID")!,
-      subject: "Verify Your Email – Hakeem Scout Talent",
       dynamicTemplateData: {
         link,
       },
@@ -28,7 +27,6 @@ export class MailService {
     const msg = {
       to: email,
       from: this.config.get<string>("SENDGRID_FROM_EMAIL")!,
-      subject: "Reset Your Password – Hakeem Scout Talent", 
       templateId: this.config.get<string>("SENDGRID_RESET_TEMPLATE_ID")!,
       dynamicTemplateData: {
         link,
@@ -43,7 +41,6 @@ export class MailService {
     const msg = {
       to: email,
       from: this.config.get<string>("SENDGRID_FROM_EMAIL")!,
-      subject: "Restore Your Account – Hakeem Scout Talent", 
       templateId: this.config.get<string>("SENDGRID_RESTORE_TEMPLATE_ID")!,
       dynamicTemplateData: {
         link,

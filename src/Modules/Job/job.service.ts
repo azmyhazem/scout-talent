@@ -15,6 +15,8 @@ import { CompanyService } from "../company/company.service";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { StatusAI } from "src/Shared/Enums/statusAI.enum";
+import { IndustryRepository } from "../industry/industry.repository";
+import { RecommendJobService } from "../recommend-ai-company/recommend-job.service";
 
 @Injectable()
 export class JobServices {
@@ -24,6 +26,8 @@ export class JobServices {
     private companyService: CompanyService,
     @InjectQueue("upload-job")
     private upload_job: Queue,
+    private industryRepo: IndustryRepository,
+    private recommendCandidateService: RecommendJobService,
   ) {}
 
   private lastJobCreatedAt: Date | null = null;
@@ -84,6 +88,7 @@ export class JobServices {
       positions,
       maxApplications,
       seniority,
+      industry,
     } = dto;
 
     const now = Date.now();
@@ -92,6 +97,9 @@ export class JobServices {
     if (deadline.getTime() <= now) {
       throw new BadRequestException("the deadline must be in the future");
     }
+    const industryR = await this.industryRepo.find(industry);
+
+    if (!industryR) throw new BadRequestException("industry not found");
 
     const Njob = this.jobRepository.create({
       title,
@@ -110,6 +118,7 @@ export class JobServices {
       positions,
       maxApplications,
       deadline,
+      industry: industryR,
     });
 
     const job = await this.jobRepository.save(Njob);
@@ -164,6 +173,29 @@ export class JobServices {
     return await jobs.getMany();
   }
 
+  public async getRecommendCandidate(userId: string, jobId: string) {
+    const company = await this.companyService.findCompanyWithIdUser(userId);
+
+    if (!company) throw new BadRequestException("please try again");
+
+    const job = await this.jobRepository.findOne({
+      where: {
+        id: jobId,
+        company: { id: company.id },
+      },
+      relations: ["company"],
+    });
+
+    if (!job) throw new BadRequestException("no job found");
+
+    const recommendCandidate =
+      await this.recommendCandidateService.getLastBatchByJob(jobId);
+
+    if (!recommendCandidate) throw new BadRequestException("no recommend");
+
+    return { data: recommendCandidate };
+  }
+
   /**
    * get job's id
    * @param id
@@ -200,7 +232,7 @@ export class JobServices {
       throw new BadRequestException("not found job");
     }
 
-    await this.jobRepository.update(id, dto);
+    await this.jobRepository.update(id, { ...dto, industry: {} });
 
     return { message: "Job updated successfully" };
   }
@@ -268,7 +300,21 @@ export class JobServices {
     manager?: EntityManager,
   ) {
     const repo = manager ? manager.getRepository(Job) : this.jobRepository;
-    return repo.update(jobId, { statusAi });
+
+    const job = await repo.findOne({
+      where: {
+        id: jobId,
+      },
+      relations: ["industry"],
+    });
+
+    if (!job) {
+      throw new BadRequestException("not found job");
+    }
+
+    job.statusAi = statusAi;
+
+    return repo.save(job);
   }
 
   private getDateBeforeMonths(month: number) {

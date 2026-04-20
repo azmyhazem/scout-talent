@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { IndustryName } from "../../Shared/Enums/industry.enum";
 import { Applicant } from "../applicant/applicant.entity";
+import { Job } from "../Job/job.entity";
 
 @Entity({ name: "industry" })
 export class Industry {
@@ -15,4 +16,7 @@ export class Industry {
 
   @OneToMany(() => Applicant, (app) => app.industry)
   applicant: Applicant[];
+
+  @OneToMany(() => Job, (job) => job.industry)
+  job: Job[];
 }

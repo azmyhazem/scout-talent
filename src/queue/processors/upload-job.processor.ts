@@ -1,5 +1,5 @@
-import { Processor, WorkerHost } from "@nestjs/bullmq";
-import { Job } from "bullmq";
+import { InjectQueue, Processor, WorkerHost } from "@nestjs/bullmq";
+import { Job, Queue } from "bullmq";
 import { HttpService } from "@nestjs/axios";
 import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 import { InjectDataSource } from "@nestjs/typeorm";
@@ -7,6 +7,7 @@ import { DataSource } from "typeorm";
 import { ConfigService } from "@nestjs/config";
 import { JobServices } from "src/Modules/Job/job.service";
 import { firstValueFrom } from "rxjs";
+import { RecommendJobService } from "src/Modules/recommend-ai-company/recommend-job.service";
 
 @Processor("upload-job")
 export class JobProcessor extends WorkerHost {
@@ -16,6 +17,11 @@ export class JobProcessor extends WorkerHost {
     private config: ConfigService,
     @InjectDataSource()
     private dataSource: DataSource,
+
+    private recommendJob: RecommendJobService,
+
+    @InjectQueue("recommend-candidate")
+    private recommendcandidate: Queue,
   ) {
     super();
   }
@@ -38,20 +44,43 @@ export class JobProcessor extends WorkerHost {
         }),
       );
 
-      await this.dataSource.transaction(async (manager) => {
+      const result = await this.dataSource.transaction(async (manager) => {
         await this.jobService.updateJobIdAi(
           jobId,
           response.data.job_id,
           manager,
         );
 
-        await this.jobService.updateStatusAi(
+        const job = await this.jobService.updateStatusAi(
           jobId,
           StatusAI.COMPLETED,
           manager,
         );
+
+        const batch = await this.recommendJob.createBatch({ job }, manager);
+
+        return {
+          batchId: batch.id,
+          job_id: job.jobIdAi,
+          project_id: job.industry.projectId,
+        };
       });
 
+      await this.recommendcandidate.add(
+        "add-row",
+        {
+          batchId: result.batchId,
+          job_id: result.job_id,
+          project_id: result.project_id,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: "exponential",
+            delay: 2000,
+          },
+        },
+      );
       console.log("✅ Job Done");
 
       return response.data;

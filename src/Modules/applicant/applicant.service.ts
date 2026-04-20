@@ -6,14 +6,13 @@ import {
 } from "@nestjs/common";
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { Applicant } from "./applicant.entity";
-import { DataSource, EntityManager, MoreThan, Repository } from "typeorm";
+import { DataSource, EntityManager, In, MoreThan, Repository } from "typeorm";
 import { updateApplicantDTO } from "./dto/updateApplicant.dto";
 import { UserService } from "../Users/user.service";
 import { JobApplicant } from "../application/job_applicant.entity";
 import { CandidateStatus } from "src/Shared/Enums/candidateStatus.enum";
-import { RecommendJobService } from "../recommend-ai/recommend-job.service";
 import { CVService } from "../CV/cv.service";
-import { JobServices } from "../Job/job.service";
+import { RecommendAiService } from "../recommend-ai-cv/recommend-ai-cv.service";
 
 @Injectable()
 export class ApplicantService {
@@ -25,11 +24,18 @@ export class ApplicantService {
     @InjectRepository(JobApplicant)
     private jobApplicantRepository: Repository<JobApplicant>,
     private userService: UserService,
-    private recommendJobService: RecommendJobService,
     @Inject(forwardRef(() => CVService))
     private cvServcie: CVService,
-    private jobService: JobServices,
+    private recommendAiService: RecommendAiService,
   ) {}
+
+  public async getApplicantByCandidateId(candidateId: number[]) {
+    return this.applicantRepository.find({
+      where: {
+        candidateId: In(candidateId),
+      },
+    });
+  }
 
   public async createApplicant(
     data: Partial<Applicant>,
@@ -179,31 +185,11 @@ export class ApplicantService {
     const cv = await this.cvServcie.getCvPrimary(applicant.id);
     if (!cv) throw new BadRequestException("no applicant found");
 
-    const recommendJob = await this.recommendJobService.findByCandidateAndAsset(
-      applicant.id,
-      cv.id,
-    );
+    const recommendJob = await this.recommendAiService.getLastBatchByCv(cv.id);
 
     if (!recommendJob) throw new BadRequestException("no recommend");
 
-    const result = recommendJob.recommends;
-
-    const jobIds = result.map((item) => Number(item.job_id));
-
-    const jobs = await this.jobService.getJobsByJobIdAi(jobIds);
-
-    const jobsMap = new Map(jobs.map((job) => [job.jobIdAi, job]));
-
-    const resultToltal = result.map((item) => {
-      const job = jobsMap.get(String(item.job_id));
-
-      return {
-        ...job,
-        ...item,
-      };
-    });
-
-    return { data: resultToltal };
+    return { data: recommendJob };
   }
 
   public async updateCandidataId(

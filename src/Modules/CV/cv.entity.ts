@@ -9,6 +9,7 @@ import {
 import { JobApplicant } from "../application/job_applicant.entity";
 import { Applicant } from "../applicant/applicant.entity";
 import { StatusAI } from "src/Shared/Enums/statusAI.enum";
+import { RecommendationBatchCV } from "../recommend-ai-cv/recommendation-batch-cv.entity";
 
 @Entity({ name: "CV" })
 export class CV {
@@ -42,4 +43,7 @@ export class CV {
 
   @OneToMany(() => JobApplicant, (app) => app.cv)
   applications: JobApplicant[];
+
+  @OneToMany(() => RecommendationBatchCV, (batch) => batch.cv)
+  batches: RecommendationBatchCV[];
 }

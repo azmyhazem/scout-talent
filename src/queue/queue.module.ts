@@ -8,8 +8,10 @@ import { JobModule } from "src/Modules/Job/job.module";
 import { JobProcessor } from "./processors/upload-job.processor";
 import { AnalyzeMatchProcessor } from "./processors/analyze-match.processor";
 import { ApplicationModule } from "src/Modules/application/application.module";
-import { RecommendAiModule } from "src/Modules/recommend-ai/recommend-ai.module";
 import { RecommendJobProcessor } from "./processors/recommend-job.processor";
+import { RecommendAiModule } from "src/Modules/recommend-ai-cv/recommend-ai-cv.module";
+import { RecommendAiJobModule } from "src/Modules/recommend-ai-company/recommend-ai-company.module";
+import { RecommendCandidateProcessor } from "./processors/recommend-candidate.processor";
 
 @Module({
   providers: [
@@ -17,18 +19,21 @@ import { RecommendJobProcessor } from "./processors/recommend-job.processor";
     JobProcessor,
     AnalyzeMatchProcessor,
     RecommendJobProcessor,
+    RecommendCandidateProcessor
   ],
   imports: [
     BullModule.registerQueue({ name: "upload-cv" }),
     BullModule.registerQueue({ name: "upload-job" }),
     BullModule.registerQueue({ name: "analyze-match" }),
     BullModule.registerQueue({ name: "recommend-jobs" }),
+    BullModule.registerQueue({ name: "recommend-candidate" }),
     HttpModule,
     forwardRef(() => CVModule),
     ApplicantModule,
     forwardRef(() => JobModule),
     forwardRef(() => ApplicationModule),
     RecommendAiModule,
+    RecommendAiJobModule
   ],
   exports: [BullModule],
 })

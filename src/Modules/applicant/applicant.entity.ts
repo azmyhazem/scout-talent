@@ -13,6 +13,7 @@ import { JobApplicant } from "../application/job_applicant.entity";
 import { Skill } from "../Skills/skills.entity";
 import { Experience } from "../Experience/experience.entity";
 import { Industry } from "../industry/industry.entity";
+import { RecommendCandidate } from "../recommend-ai-company/recommend-candidate.entity";
 
 @Entity("applicant")
 export class Applicant {
@@ -46,4 +47,7 @@ export class Applicant {
 
   @OneToMany(() => Experience, (ex) => ex.applicant)
   experiences!: Experience[];
+
+  @OneToMany(() => RecommendCandidate, (rec) => rec.applicant)
+  recommendation: RecommendCandidate[];
 }

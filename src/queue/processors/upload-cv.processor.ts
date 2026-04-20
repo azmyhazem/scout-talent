@@ -10,7 +10,7 @@ import { ApplicantService } from "src/Modules/applicant/applicant.service";
 import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
 import { ConfigService } from "@nestjs/config";
-import { RecommendJobService } from "src/Modules/recommend-ai/recommend-job.service";
+import { RecommendAiService } from "src/Modules/recommend-ai-cv/recommend-ai-cv.service";
 
 @Processor("upload-cv")
 export class CVProcessor extends WorkerHost {
@@ -23,7 +23,7 @@ export class CVProcessor extends WorkerHost {
     private dataSource: DataSource,
     @InjectQueue("recommend-jobs")
     private recommendJob: Queue,
-    private recommendJobService: RecommendJobService,
+    private recommendAiService: RecommendAiService,
   ) {
     super();
   }
@@ -65,44 +65,46 @@ export class CVProcessor extends WorkerHost {
       );
 
       const recommend = await this.dataSource.transaction(async (manager) => {
-        const cvN = await this.cvService.updateAssetId(
+        await this.cvService.updateAssetId(
           cvId,
           response.data.asset_id,
           manager,
         );
 
-        const candidate = await this.applicantService.updateCandidataId(
+        const applicant = await this.applicantService.updateCandidataId(
           applicantId,
           response.data.candidate_id,
           manager,
         );
 
-        const asset = await this.cvService.updateStatue(
+        const cv = await this.cvService.updateStatue(
           cvId,
           StatusAI.COMPLETED,
           manager,
         );
 
-        if (!asset.isPrimary) {
+        if (!cv.isPrimary) {
           return { recommend: null };
         }
-        const recommend = await this.recommendJobService.create(
+
+        const recommend = await this.recommendAiService.createBatch(
           {
-            candidate,
-            asset,
+            cv,
           },
           manager,
         );
-        return { recommend };
+
+        return { recommend, asset_id: cv.asset_id , candidate_Id:applicant.candidateId};
       });
 
+      console.log(recommend)
       if (recommend.recommend) {
         await this.recommendJob.add(
           "row",
           {
-            recommendId: recommend.recommend.id,
-            candidate_id: response.data.candidate_id,
-            asset_id: response.data.asset_id,
+            batchId: recommend.recommend.id,
+            asset_id: recommend.asset_id,
+            candidate_Id: recommend.candidate_Id
           },
           {
             attempts: 3,
