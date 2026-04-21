@@ -48,13 +48,13 @@ import { RecommendAiModule } from "./Modules/recommend-ai-cv/recommend-ai-cv.mod
       },
     ]),
     BullModule.forRoot({
-      connection: {
-        host: "localhost",
-        port: 6379,
-      },
       // connection: {
-      //   url: process.env.REDIS_URL,
+      //   host: "localhost",
+      //   port: 6379,
       // },
+      connection: {
+        url: process.env.REDIS_URL,
+      },
     }),
   ],
 })
