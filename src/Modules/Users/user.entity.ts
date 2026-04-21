@@ -31,6 +31,9 @@ export class User {
   @Column({ nullable: true })
   linkedIn_profile: string;
 
+  @Column({ select: false, unique: true })
+  slug: string;
+
   @Column({ type: "enum", enum: RoleUser, default: RoleUser.APPLICANT })
   role: RoleUser;
 

@@ -35,6 +35,14 @@ export class CompanyController {
     return { data: me };
   }
 
+    @Get("shared/profile")
+    @Roles(RoleUser.COMPANY)
+    @UseGuards(AuthGuard)
+    @ApiSecurity("bearer")
+    public async sharedProfile(@currentUser() payload: JwtPayloadType) {
+      return this.companyService.shareLink(payload.id);
+    }
+  
   @Get("basic_info")
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)

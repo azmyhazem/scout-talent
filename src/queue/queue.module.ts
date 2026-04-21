@@ -12,6 +12,7 @@ import { RecommendJobProcessor } from "./processors/recommend-job.processor";
 import { RecommendAiModule } from "src/Modules/recommend-ai-cv/recommend-ai-cv.module";
 import { RecommendAiJobModule } from "src/Modules/recommend-ai-company/recommend-ai-company.module";
 import { RecommendCandidateProcessor } from "./processors/recommend-candidate.processor";
+import { UpdateJobStatusProcessor } from "./processors/update-job-status.processor";
 
 @Module({
   providers: [
@@ -19,11 +20,13 @@ import { RecommendCandidateProcessor } from "./processors/recommend-candidate.pr
     JobProcessor,
     AnalyzeMatchProcessor,
     RecommendJobProcessor,
-    RecommendCandidateProcessor
+    RecommendCandidateProcessor,
+    UpdateJobStatusProcessor
   ],
   imports: [
     BullModule.registerQueue({ name: "upload-cv" }),
     BullModule.registerQueue({ name: "upload-job" }),
+    BullModule.registerQueue({ name: "update-job-status" }),
     BullModule.registerQueue({ name: "analyze-match" }),
     BullModule.registerQueue({ name: "recommend-jobs" }),
     BullModule.registerQueue({ name: "recommend-candidate" }),

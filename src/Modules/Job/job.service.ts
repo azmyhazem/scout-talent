@@ -28,6 +28,8 @@ export class JobServices {
     private upload_job: Queue,
     private industryRepo: IndustryRepository,
     private recommendCandidateService: RecommendJobService,
+    @InjectQueue("update-job-status")
+    private update_job_status: Queue,
   ) {}
 
   private lastJobCreatedAt: Date | null = null;
@@ -76,7 +78,6 @@ export class JobServices {
     const {
       title,
       description,
-      status,
       skills,
       location,
       minSalary,
@@ -107,7 +108,7 @@ export class JobServices {
       location,
       minSalary,
       maxSalary,
-      status,
+      status: JobStatus.DRAFT,
       requirements,
       type,
       workMode,
@@ -232,7 +233,23 @@ export class JobServices {
       throw new BadRequestException("not found job");
     }
 
-    await this.jobRepository.update(id, { ...dto, industry: {} });
+    if (job.status !== JobStatus.DRAFT) {
+      throw new BadRequestException(
+        `the status of job ${job.status} , can't update`,
+      );
+    }
+
+    let industry = job.industry;
+    if (dto.industry) {
+      const foundIndustry = await this.industryRepo.find(dto.industry);
+
+      if (!foundIndustry) {
+        throw new BadRequestException("industry not found");
+      }
+
+      industry = foundIndustry;
+    }
+    await this.jobRepository.update(id, { ...dto, industry });
 
     return { message: "Job updated successfully" };
   }
@@ -278,9 +295,52 @@ export class JobServices {
     if (!job) throw new BadRequestException("no job found");
 
     const { status } = dto;
+
+    const terminalStates = [
+      JobStatus.APPLICATIONS_FULL,
+      JobStatus.CLOSED,
+      JobStatus.EXPIRED,
+      JobStatus.FILLED,
+    ];
+
+    if (terminalStates.includes(job.status)) {
+      throw new BadRequestException("Job cannot be modified anymore");
+    }
+
+    if (new Date() > job.deadline) {
+      job.status = JobStatus.EXPIRED;
+      await this.jobRepository.save(job);
+      throw new BadRequestException("Job is expired");
+    }
+
+    const allowedTransitions = {
+      [JobStatus.DRAFT]: [JobStatus.PUBLISHED],
+      [JobStatus.PUBLISHED]: [JobStatus.PAUSED, JobStatus.CLOSED],
+      [JobStatus.PAUSED]: [JobStatus.PUBLISHED, JobStatus.CLOSED],
+    };
+
+    if (!allowedTransitions[job.status]?.includes(status)) {
+      throw new BadRequestException("Invalid status transition");
+    }
+
     job.status = status;
 
     await this.jobRepository.save(job);
+
+    await this.update_job_status.add(
+      "job-status",
+      {
+        job_id: job.jobIdAi,
+        status,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 2000,
+        },
+      },
+    );
 
     return job;
   }

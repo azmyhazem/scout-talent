@@ -3,10 +3,14 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./user.entity";
 import { EntityManager, Repository } from "typeorm";
 import { RoleUser } from "src/Shared/Enums/user.enum";
+import { ApplicantService } from "../applicant/applicant.service";
+import { CompanyService } from "../company/company.service";
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    private applicantService: ApplicantService,
+    private companyService: CompanyService,
   ) {}
 
   public async createUser(data: Partial<User>, manger?: EntityManager) {
@@ -31,6 +35,21 @@ export class UserService {
       .getOne();
   }
 
+  public async findUserBySlug(slug: string) {
+    const user = await this.userRepository
+      .createQueryBuilder("user")
+      .addSelect("user.slug")
+      .where("user.slug = :slug", { slug })
+      .getOne();
+
+    if (!user) throw new BadRequestException("bot found user in this name");
+
+    if (user.role === RoleUser.APPLICANT) {
+      return this.applicantService.findApplicantwithDetails(user.id);
+    }
+    return this.companyService.findCompanywithDetails(user.id);
+  }
+
   public findUserByIdWithToken(userId: string) {
     return this.userRepository
       .createQueryBuilder("user")
@@ -52,7 +71,7 @@ export class UserService {
   public restoreAccount(userId: string, manger: EntityManager) {
     const repo = manger ? manger.getRepository(User) : this.userRepository;
 
-    return repo.update(userId, { isDelete: false , });
+    return repo.update(userId, { isDelete: false });
   }
 
   public verify(userId: string, manger: EntityManager) {

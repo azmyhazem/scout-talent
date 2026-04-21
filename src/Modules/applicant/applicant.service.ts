@@ -23,11 +23,26 @@ export class ApplicantService {
     private applicantRepository: Repository<Applicant>,
     @InjectRepository(JobApplicant)
     private jobApplicantRepository: Repository<JobApplicant>,
+
+    @Inject(forwardRef(() => UserService))
     private userService: UserService,
+
     @Inject(forwardRef(() => CVService))
     private cvServcie: CVService,
+    
     private recommendAiService: RecommendAiService,
   ) {}
+
+  public async shareLink(userId: string) {
+    const applicant = await this.applicantRepository
+      .createQueryBuilder("applicant")
+      .leftJoin("applicant.user", "user")
+      .addSelect("user.slug")
+      .where("user.id = :userId", { userId })
+      .getOne();
+
+    return { data: { slug: applicant?.user.slug } };
+  }
 
   public async getApplicantByCandidateId(candidateId: number[]) {
     return this.applicantRepository.find({

@@ -1,4 +1,9 @@
-import { BadRequestException, forwardRef, Inject, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Company } from "./company.entity";
 import { EntityManager, MoreThan, Repository } from "typeorm";
@@ -18,10 +23,24 @@ export class CompanyService {
     private companyRepository: Repository<Company>,
     @InjectRepository(JobApplicant)
     private jobApplicantRepository: Repository<JobApplicant>,
+
+    @Inject(forwardRef(() => UserService))
     private userService: UserService,
-    @Inject(forwardRef(()=>JobServices))
+
+    @Inject(forwardRef(() => JobServices))
     private jobService: JobServices,
   ) {}
+
+    public async shareLink(userId: string) {
+    const company = await this.companyRepository
+      .createQueryBuilder("company")
+      .leftJoin("company.user", "user")
+      .addSelect("user.slug")
+      .where("user.id = :userId", { userId })
+      .getOne();
+
+    return { data: { slug: company?.user.slug } };
+  }
 
   public createCompany(data: Partial<Company>, manger: EntityManager) {
     const repo = manger

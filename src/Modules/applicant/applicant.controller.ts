@@ -54,6 +54,14 @@ export class ApplicantController {
     return result;
   }
 
+  @Get("shared/profile")
+  @Roles(RoleUser.APPLICANT)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  public async sharedProfile(@currentUser() payload: JwtPayloadType) {
+    return this.applicantService.shareLink(payload.id);
+  }
+
   @Patch("basic_info")
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)

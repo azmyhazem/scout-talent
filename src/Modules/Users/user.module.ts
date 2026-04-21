@@ -6,8 +6,11 @@ import { MailModule } from "src/Shared/Mail/mail.module";
 import { JwtModule } from "@nestjs/jwt";
 import { JobModule } from "../Job/job.module";
 import { ApplicationModule } from "../application/application.module";
+import { UserController } from "./user.controller";
+import { CompanyModule } from "../company/company.module";
+import { ApplicantModule } from "../applicant/applicant.module";
 @Module({
-  controllers: [],
+  controllers: [UserController],
   providers: [UserService],
   imports: [
     forwardRef(() => JobModule),
@@ -15,6 +18,8 @@ import { ApplicationModule } from "../application/application.module";
     MailModule,
     TypeOrmModule.forFeature([User]),
     JwtModule,
+    forwardRef(()=>CompanyModule),
+    forwardRef(()=>ApplicantModule)
   ],
   exports: [UserService],
 })

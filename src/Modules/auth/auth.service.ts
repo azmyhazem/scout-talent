@@ -83,6 +83,7 @@ export class AuthService {
           linkedIn_profile,
           location,
           role,
+          slug: this.generateSlug(name),
         },
         manager,
       );
@@ -549,5 +550,16 @@ export class AuthService {
 
   private async compare(password: string, hash: string): Promise<boolean> {
     return bcrypt.compare(password, hash);
+  }
+
+  private generateSlug(name: string) {
+    const base = name.toLowerCase().replace(/\s+/g, "-");
+    const random = this.generate6DigitNumber();
+
+    return `${base}-${random}`;
+  }
+
+  private generate6DigitNumber() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 }

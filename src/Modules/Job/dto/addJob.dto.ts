@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsEnum, IsISO8601, IsNumber, IsString } from "class-validator";
 import { IndustryName } from "src/Shared/Enums/industry.enum";
-import { JobStatus, JobType, WorkMode } from "src/Shared/Enums/job.enum";
+import { JobType, WorkMode } from "src/Shared/Enums/job.enum";
 import { Seniority } from "src/Shared/Enums/seniority.enum";
 
 export class addJobDTO {
@@ -24,10 +24,6 @@ export class addJobDTO {
   @IsString()
   @ApiProperty()
   type: JobType;
-
-  @IsString()
-  @ApiProperty()
-  status: JobStatus;
 
   @IsString()
   @ApiProperty()
