@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  OnModuleInit,
 } from "@nestjs/common";
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { Applicant } from "./applicant.entity";
@@ -13,9 +14,17 @@ import { JobApplicant } from "../application/job_applicant.entity";
 import { CandidateStatus } from "src/Shared/Enums/candidateStatus.enum";
 import { CVService } from "../CV/cv.service";
 import { RecommendAiService } from "../recommend-ai-cv/recommend-ai-cv.service";
+import { JobServices } from "../Job/job.service";
+import { Queue, QueueEvents } from "bullmq";
+import { InjectQueue } from "@nestjs/bullmq";
+import { CV } from "../CV/cv.entity";
+import { StatusAI } from "src/Shared/Enums/statusAI.enum";
+import { RecommendationBatchCV } from "../recommend-ai-cv/recommendation-batch-cv.entity";
 
 @Injectable()
-export class ApplicantService {
+export class ApplicantService implements OnModuleInit {
+  private queueEvents: QueueEvents;
+
   constructor(
     @InjectDataSource()
     private dataSource: DataSource,
@@ -29,9 +38,23 @@ export class ApplicantService {
 
     @Inject(forwardRef(() => CVService))
     private cvServcie: CVService,
-    
     private recommendAiService: RecommendAiService,
+
+    private jobService: JobServices,
+
+    @InjectQueue("create-batch-cv")
+    private create_batch_cv: Queue,
   ) {}
+
+  onModuleInit() {
+    this.queueEvents = new QueueEvents("create-batch-cv", {
+      connection: {
+        url: process.env.REDIS_URL
+        // host: process.env.REDIS_HOST ?? "localhost",
+        // port: 6379,
+      },
+    });
+  }
 
   public async shareLink(userId: string) {
     const applicant = await this.applicantRepository
@@ -192,19 +215,84 @@ export class ApplicantService {
     return { message: "Account deleted successfully" };
   }
 
-  public async getJobsRecommend(userId: string) {
+  public async getJobsRecommend(userId: string, isRefresh: boolean) {
     const applicant = await this.findApplicantWithIdUser(userId);
-
-    if (!applicant) throw new BadRequestException("no applicant found");
+    if (!applicant) throw new BadRequestException("No applicant found");
 
     const cv = await this.cvServcie.getCvPrimary(applicant.id);
-    if (!cv) throw new BadRequestException("no applicant found");
+    if (!cv) throw new BadRequestException("No CV found");
 
     const recommendJob = await this.recommendAiService.getLastBatchByCv(cv.id);
 
-    if (!recommendJob) throw new BadRequestException("no recommend");
+    if (isRefresh) {
+      if (recommendJob) {
+        const latestJob = await this.jobService.getLatestJobByIndustry(
+          applicant.industry.id,
+        );
+        if (!latestJob || latestJob.createdAt <= recommendJob.createdAt) {
+          return { data: recommendJob }; // Already up to date
+        }
+      }
+
+      // Trigger both processors and wait for COMPLETED status
+      const fresh = await this.triggerAndWaitForBatch(cv);
+      return { data: fresh };
+    }
+
+    if (!recommendJob) {
+      return { data: null, message: "No recommendations available" };
+    }
 
     return { data: recommendJob };
+  }
+
+  private async triggerAndWaitForBatch(
+    cv: CV,
+  ): Promise<RecommendationBatchCV | null> {
+    // Step 1: Trigger Processor 1
+    const job = await this.create_batch_cv.add(
+      "add-batch-cv",
+      { cv },
+      {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 2000 },
+      },
+    );
+
+    // Step 2: Wait for Processor 1 to finish (creates batch + triggers Processor 2)
+    await job.waitUntilFinished(this.queueEvents, 15000);
+
+    // Step 3: Now poll the batch STATUS until COMPLETED or FAILED
+    return this.pollUntilCompleted(cv.id);
+  }
+
+  private async pollUntilCompleted(
+    cvId: string,
+    intervalMs = 2000,
+    maxWaitMs = 30000,
+  ): Promise<RecommendationBatchCV | null> {
+    const start = Date.now();
+
+    while (Date.now() - start < maxWaitMs) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+
+      const batch = await this.recommendAiService.getLastBatchByCv(cvId);
+
+      if (!batch) continue;
+
+      if (batch.status === StatusAI.COMPLETED) {
+        return batch;
+      }
+
+      if (batch.status === StatusAI.FAILED) {
+        throw new Error("Recommendation job failed");
+      }
+
+      // If ACTIVE or RETRYING → keep polling
+      console.log(`Status: ${batch.status}, still waiting...`);
+    }
+
+    return null; // ⏱️ Timed out
   }
 
   public async updateCandidataId(

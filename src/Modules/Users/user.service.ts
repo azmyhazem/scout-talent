@@ -60,7 +60,12 @@ export class UserService {
 
   public updateAuth(
     userId: string,
-    data: { role?: RoleUser; refreshToken: string },
+    data: {
+      role?: RoleUser;
+      refreshToken: string;
+      linkedIn_profile?: string;
+      location?: string;
+    },
     manger?: EntityManager,
   ) {
     const repo = manger ? manger.getRepository(User) : this.userRepository;

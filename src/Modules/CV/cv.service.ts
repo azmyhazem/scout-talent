@@ -112,7 +112,7 @@ export class CVService {
   public async findCV(id: string, manager?: EntityManager) {
     const repo = manager ? manager.getRepository(CV) : this.cvRepository;
 
-    const cv = await repo.findOne({ where: { id } });
+    const cv = await repo.findOne({ where: { id }, relations: ["applicant"] });
 
     return cv;
   }

@@ -8,6 +8,8 @@ import { JwtModule } from "@nestjs/jwt";
 import { ApplicantController } from "./applicant.controller";
 import { CVModule } from "../CV/cv.module";
 import { RecommendAiModule } from "../recommend-ai-cv/recommend-ai-cv.module";
+import { JobModule } from "../Job/job.module";
+import { QueueModule } from "src/queue/queue.module";
 
 @Module({
   providers: [ApplicantService],
@@ -18,6 +20,8 @@ import { RecommendAiModule } from "../recommend-ai-cv/recommend-ai-cv.module";
     TypeOrmModule.forFeature([Applicant, JobApplicant]),
     RecommendAiModule,
     forwardRef(() => CVModule),
+    forwardRef(() =>JobModule),
+    forwardRef(()=>QueueModule)
   ],
   exports: [ApplicantService],
 })

@@ -63,6 +63,22 @@ export class CandidateController {
     return { data };
   }
 
+  @Get("company/applicantion/:jobId")
+  @Roles(RoleUser.COMPANY)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  public async getAllApplicationByJobId(
+    @currentUser() company: JwtPayloadType,
+    @Param("jobId") jobId: string,
+  ) {
+    const { jobApply } = await this.applicationService.getAllApplicationByJobId(
+      jobId,
+      company.id,
+    );
+
+    return { data: jobApply };
+  }
+
   @Get("company/jobsApply/:id")
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)

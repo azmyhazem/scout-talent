@@ -1,9 +1,12 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
+  ParseBoolPipe,
   Patch,
+  Query,
   Res,
   UseGuards,
 } from "@nestjs/common";
@@ -49,8 +52,16 @@ export class ApplicantController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
-  public async recommendJob(@currentUser() payload: JwtPayloadType) {
-    const result = await this.applicantService.getJobsRecommend(payload.id);
+  public async recommendJob(
+    @currentUser() payload: JwtPayloadType,
+    @Query("isRefresh", new DefaultValuePipe(false), ParseBoolPipe)
+    isRefresh: boolean,
+  ) {
+    const result = await this.applicantService.getJobsRecommend(
+      payload.id,
+      isRefresh,
+    );
+
     return result;
   }
 

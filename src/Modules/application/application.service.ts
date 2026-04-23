@@ -139,6 +139,24 @@ export class ApplicationService {
     return { jobApply: await jobsApply.getOne() };
   }
 
+  public async getAllApplicationByJobId(jobId: string, userId: string) {
+    const jobsApply = this.jobApplicantRepository
+      .createQueryBuilder("jobApply")
+
+      .leftJoinAndSelect("jobApply.applicant", "applicant")
+      .leftJoinAndSelect("applicant.user", "userA")
+      .leftJoinAndSelect("jobApply.job", "job")
+      .leftJoinAndSelect("job.company", "company")
+      .leftJoinAndSelect("company.user", "user")
+
+      .where("user.id = :userId AND job.id= :jobId", {
+        userId,
+        jobId,
+      });
+
+    return { jobApply: await jobsApply.getMany() };
+  }
+
   public async applyJob(
     userId: string,
     jobId: string,

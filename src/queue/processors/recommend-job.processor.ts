@@ -20,6 +20,7 @@ export class RecommendJobProcessor extends WorkerHost {
     @InjectDataSource()
     private dataSource: DataSource,
     private jobService: JobServices,
+
   ) {
     super();
   }

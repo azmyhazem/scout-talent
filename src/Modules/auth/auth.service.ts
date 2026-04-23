@@ -30,7 +30,6 @@ import { UserService } from "../Users/user.service";
 import { ApplicantService } from "../applicant/applicant.service";
 import { CompanyService } from "../company/company.service";
 import { IndustryRepository } from "../industry/industry.repository";
-import { IndustryName } from "src/Shared/Enums/industry.enum";
 
 @Injectable()
 export class AuthService {
@@ -463,7 +462,7 @@ export class AuthService {
     const user = await this.userService.findUserByIdWithToken(id);
     if (!user) throw new BadRequestException("no user found , try again");
 
-    const { role } = dto;
+    const { role, applicant, location, linkedIn_profile } = dto;
 
     const payload: JwtPayloadType = { id, role };
 
@@ -483,17 +482,24 @@ export class AuthService {
         {
           role,
           refreshToken: HrefreshToken,
+          linkedIn_profile,
+          location,
         },
         manager,
       );
 
-      if (role === RoleUser.APPLICANT) {
-        const industryR = await this.industryRepo.find(IndustryName.AR_VR);
+      if (role === RoleUser.APPLICANT && applicant) {
+        const industryR = await this.industryRepo.find(applicant.industry);
 
         if (!industryR) throw new BadRequestException("industry not found");
 
         await this.applicantService.createApplicant(
-          { user, industry: industryR },
+          {
+            user,
+            industry: industryR,
+            job_title: applicant.job_title,
+            phone: applicant.phone,
+          },
           manager,
         );
       } else {

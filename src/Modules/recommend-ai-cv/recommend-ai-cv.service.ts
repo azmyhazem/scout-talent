@@ -27,7 +27,7 @@ export class RecommendAiService {
     return await repo.save(recommend);
   }
 
-  createBatch(data: createBatch, manager: EntityManager) {
+  createBatch(data: createBatch, manager?: EntityManager) {
     const repo = manager
       ? manager.getRepository(RecommendationBatchCV)
       : this.batchRepository;

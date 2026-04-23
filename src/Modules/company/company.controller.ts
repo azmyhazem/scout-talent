@@ -17,7 +17,7 @@ import { currentUser } from "src/Shared/decorator/currentUser.decorator";
 import type { JwtPayloadType } from "src/Shared/types/JwtPayloadType";
 import { updateCompanyDTO } from "./dto/updateCompany.dto";
 import { updateoraddAboutDTO } from "./dto/about.dto";
-import { JobStatus } from "src/Shared/Enums/job.enum";
+import { JobStatus, JobType, WorkMode } from "src/Shared/Enums/job.enum";
 import type { Response } from "express";
 import { AuthGuard } from "../auth/guards/AuthUser.guard";
 
@@ -28,21 +28,21 @@ export class CompanyController {
   @Get("")
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
-  @ApiSecurity('bearer')
-  public async getProfile(@currentUser() user:JwtPayloadType ) {
+  @ApiSecurity("bearer")
+  public async getProfile(@currentUser() user: JwtPayloadType) {
     const me = await this.companyService.findCompanywithDetails(user.id);
 
     return { data: me };
   }
 
-    @Get("shared/profile")
-    @Roles(RoleUser.COMPANY)
-    @UseGuards(AuthGuard)
-    @ApiSecurity("bearer")
-    public async sharedProfile(@currentUser() payload: JwtPayloadType) {
-      return this.companyService.shareLink(payload.id);
-    }
-  
+  @Get("shared/profile")
+  @Roles(RoleUser.COMPANY)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  public async sharedProfile(@currentUser() payload: JwtPayloadType) {
+    return this.companyService.shareLink(payload.id);
+  }
+
   @Get("basic_info")
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
@@ -116,8 +116,15 @@ export class CompanyController {
   public async GetAllJobsByCompany(
     @currentUser() company: JwtPayloadType,
     @Query("q") q?: JobStatus,
+    @Query("jobType") jobType?: JobType,
+    @Query("workMode") workMode?: WorkMode,
   ) {
-    const data = await this.companyService.GetAllJobsByCompany(company.id, q);
+    const data = await this.companyService.GetAllJobsByCompany(
+      company.id,
+      q,
+      jobType,
+      workMode,
+    );
     return { data };
   }
 

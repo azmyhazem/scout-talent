@@ -9,7 +9,7 @@ import { Job } from "./job.entity";
 import { EntityManager, In, MoreThan, Repository } from "typeorm";
 import { addJobDTO } from "./dto/addJob.dto";
 import { updateJobDTO } from "./dto/updateJob.dto";
-import { JobStatus } from "src/Shared/Enums/job.enum";
+import { JobStatus, JobType, WorkMode } from "src/Shared/Enums/job.enum";
 import { jobStatusDTO } from "./dto/statusJob.dto";
 import { CompanyService } from "../company/company.service";
 import { InjectQueue } from "@nestjs/bullmq";
@@ -31,8 +31,6 @@ export class JobServices {
     @InjectQueue("update-job-status")
     private update_job_status: Queue,
   ) {}
-
-  private lastJobCreatedAt: Date | null = null;
 
   public async findJob(id: string) {
     const job = await this.jobRepository
@@ -124,8 +122,6 @@ export class JobServices {
 
     const job = await this.jobRepository.save(Njob);
 
-    this.lastJobCreatedAt = new Date();
-
     await this.upload_job.add(
       "job",
       {
@@ -161,7 +157,12 @@ export class JobServices {
     return jobs;
   }
 
-  public async GetAllJobsByCompany(companyId: string, q?: JobStatus) {
+  public async GetAllJobsByCompany(
+    companyId: string,
+    q?: JobStatus,
+    workMode?: WorkMode,
+    jobType?: JobType,
+  ) {
     const jobs = this.jobRepository
       .createQueryBuilder("job")
       .leftJoin("job.company", "company")
@@ -169,6 +170,18 @@ export class JobServices {
 
     if (q) {
       jobs.andWhere("job.status = :q", { q });
+    }
+
+    if (jobType) {
+      jobs.andWhere("LOWER(job.type) LIKE LOWER(:jobType)", {
+        jobType: `%${jobType}%`,
+      });
+    }
+
+    if (workMode) {
+      jobs.andWhere("LOWER(job.workMode) LIKE LOWER(:workMode)", {
+        workMode: `%${workMode}%`,
+      });
     }
 
     return await jobs.getMany();
@@ -375,6 +388,13 @@ export class JobServices {
     job.statusAi = statusAi;
 
     return repo.save(job);
+  }
+
+  public async getLatestJobByIndustry(industryId: string) {
+    return await this.jobRepository.findOne({
+      where: { industry: { id: industryId } },
+      order: { createdAt: "DESC" },
+    });
   }
 
   private getDateBeforeMonths(month: number) {

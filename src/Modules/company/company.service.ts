@@ -14,7 +14,7 @@ import { JobApplicant } from "../application/job_applicant.entity";
 import { CandidateStatus } from "src/Shared/Enums/candidateStatus.enum";
 import { daysToMilliseconds } from "src/Shared/utils/cookie.util";
 import { JobServices } from "../Job/job.service";
-import { JobStatus } from "src/Shared/Enums/job.enum";
+import { JobStatus, JobType, WorkMode } from "src/Shared/Enums/job.enum";
 
 @Injectable()
 export class CompanyService {
@@ -31,7 +31,7 @@ export class CompanyService {
     private jobService: JobServices,
   ) {}
 
-    public async shareLink(userId: string) {
+  public async shareLink(userId: string) {
     const company = await this.companyRepository
       .createQueryBuilder("company")
       .leftJoin("company.user", "user")
@@ -184,7 +184,12 @@ export class CompanyService {
     };
   }
 
-  public async GetAllJobsByCompany(id: string, q?: JobStatus) {
+  public async GetAllJobsByCompany(
+    id: string,
+    q?: JobStatus,
+    jobType?: JobType,
+    workMode?: WorkMode,
+  ) {
     const company = await this.companyRepository.findOne({
       where: { user: { id } },
       relations: ["user"],
@@ -192,7 +197,12 @@ export class CompanyService {
 
     if (!company) throw new BadRequestException("no user found");
 
-    return this.jobService.GetAllJobsByCompany(company.id, q);
+    return this.jobService.GetAllJobsByCompany(
+      company.id,
+      q,
+      workMode,
+      jobType,
+    );
   }
 
   public async deleteAccount(id: string) {
