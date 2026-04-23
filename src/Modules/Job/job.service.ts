@@ -311,7 +311,10 @@ export class JobServices implements OnModuleInit {
    * @returns job
    */
   public async getJob(id: string) {
-    const job = await this.jobRepository.findOne({ where: { id } ,relations:['industry']});
+    const job = await this.jobRepository.findOne({
+      where: { id },
+      relations: ["industry"],
+    });
 
     if (!job) {
       throw new BadRequestException("not found job");
@@ -327,13 +330,14 @@ export class JobServices implements OnModuleInit {
     });
   }
 
-  public async updateJob(companyId: string, id: string, dto: updateJobDTO) {
+  public async updateJob(userId: string, id: string, dto: updateJobDTO) {
+    const company = await this.companyService.findCompanyWithIdUser(userId);
+
+    if (!company) throw new BadRequestException("please try again");
     const job = await this.jobRepository.findOne({
       where: {
         id,
-        company: {
-          id: companyId,
-        },
+        company,
       },
     });
 
