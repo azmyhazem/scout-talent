@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  OnModuleInit,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Job } from "./job.entity";
@@ -13,24 +14,47 @@ import { JobStatus, JobType, WorkMode } from "src/Shared/Enums/job.enum";
 import { jobStatusDTO } from "./dto/statusJob.dto";
 import { CompanyService } from "../company/company.service";
 import { InjectQueue } from "@nestjs/bullmq";
-import { Queue } from "bullmq";
+import { Queue, QueueEvents } from "bullmq";
 import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 import { IndustryRepository } from "../industry/industry.repository";
 import { RecommendJobService } from "../recommend-ai-company/recommend-job.service";
+import { RecommendationBatchJob } from "../recommend-ai-company/recommendation-batch-job.entity";
+import { CVService } from "../CV/cv.service";
 
 @Injectable()
-export class JobServices {
+export class JobServices implements OnModuleInit {
+  private queueEvents: QueueEvents;
+
   constructor(
     @InjectRepository(Job) private jobRepository: Repository<Job>,
     @Inject(forwardRef(() => CompanyService))
     private companyService: CompanyService,
+
     @InjectQueue("upload-job")
     private upload_job: Queue,
+
     private industryRepo: IndustryRepository,
+
     private recommendCandidateService: RecommendJobService,
+
     @InjectQueue("update-job-status")
     private update_job_status: Queue,
+
+    private cvService: CVService,
+
+    @InjectQueue("create-batch-job")
+    private create_batch_job: Queue,
   ) {}
+
+  onModuleInit() {
+    this.queueEvents = new QueueEvents("create-batch-job", {
+      connection: {
+        url: process.env.REDIS_URL,
+        // host: process.env.REDIS_HOST ?? "localhost",
+        // port: 6379,
+      },
+    });
+  }
 
   public async findJob(id: string) {
     const job = await this.jobRepository
@@ -187,7 +211,11 @@ export class JobServices {
     return await jobs.getMany();
   }
 
-  public async getRecommendCandidate(userId: string, jobId: string) {
+  public async getRecommendCandidate(
+    userId: string,
+    isRefresh: boolean,
+    jobId: string,
+  ) {
     const company = await this.companyService.findCompanyWithIdUser(userId);
 
     if (!company) throw new BadRequestException("please try again");
@@ -205,9 +233,76 @@ export class JobServices {
     const recommendCandidate =
       await this.recommendCandidateService.getLastBatchByJob(jobId);
 
-    if (!recommendCandidate) throw new BadRequestException("no recommend");
+    if (isRefresh) {
+      if (recommendCandidate) {
+        const latestJob = await this.cvService.getLatestCVByIndustry(
+          job.industry.id,
+        );
+        if (!latestJob || latestJob.createdAt <= recommendCandidate.createdAt) {
+          return { data: recommendCandidate }; // Already up to date
+        }
+      }
+
+      // Trigger both processors and wait for COMPLETED status
+      const fresh = await this.triggerAndWaitForBatch(job);
+      return { data: fresh };
+    }
+
+    if (!recommendCandidate) {
+      return { data: null, message: "No recommendations available" };
+    }
 
     return { data: recommendCandidate };
+  }
+
+  private async triggerAndWaitForBatch(
+    job: Job,
+  ): Promise<RecommendationBatchJob | null> {
+    // Step 1: Trigger Processor 1
+    const jobProcessor = await this.create_batch_job.add(
+      "add-batch-job",
+      { job },
+      {
+        attempts: 3,
+        backoff: { type: "exponential", delay: 2000 },
+      },
+    );
+
+    // Step 2: Wait for Processor 1 to finish (creates batch + triggers Processor 2)
+    await jobProcessor.waitUntilFinished(this.queueEvents, 15000);
+
+    // Step 3: Now poll the batch STATUS until COMPLETED or FAILED
+    return this.pollUntilCompleted(job.id);
+  }
+
+  private async pollUntilCompleted(
+    jobId: string,
+    intervalMs = 2000,
+    maxWaitMs = 30000,
+  ): Promise<RecommendationBatchJob | null> {
+    const start = Date.now();
+
+    while (Date.now() - start < maxWaitMs) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+
+      const batch =
+        await this.recommendCandidateService.getLastBatchByJob(jobId);
+
+      if (!batch) continue;
+
+      if (batch.status === StatusAI.COMPLETED) {
+        return batch;
+      }
+
+      if (batch.status === StatusAI.FAILED) {
+        throw new Error("Recommendation job failed");
+      }
+
+      // If ACTIVE or RETRYING → keep polling
+      console.log(`Status: ${batch.status}, still waiting...`);
+    }
+
+    return null; // ⏱️ Timed out
   }
 
   /**
@@ -216,7 +311,7 @@ export class JobServices {
    * @returns job
    */
   public async getJob(id: string) {
-    const job = await this.jobRepository.findOne({ where: { id } });
+    const job = await this.jobRepository.findOne({ where: { id } ,relations:['industry']});
 
     if (!job) {
       throw new BadRequestException("not found job");

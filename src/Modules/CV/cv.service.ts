@@ -17,6 +17,20 @@ export class CVService {
     private applicantService: ApplicantService,
   ) {}
 
+  public async getLatestCVByIndustry(industryId: string) {
+    return await this.cvRepository.findOne({
+      where: {
+        applicant: {
+          industry: {
+            id: industryId,
+          },
+        },
+      },
+      order: { createdAt: "DESC" },
+      relations:['applicant']
+    });
+  }
+
   public async uploadCV(userId: string, url: string, name: string) {
     const user = await this.applicantService.findApplicantWithIdUser(userId);
 

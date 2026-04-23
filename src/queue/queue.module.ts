@@ -14,6 +14,7 @@ import { RecommendAiJobModule } from "src/Modules/recommend-ai-company/recommend
 import { RecommendCandidateProcessor } from "./processors/recommend-candidate.processor";
 import { UpdateJobStatusProcessor } from "./processors/update-job-status.processor";
 import { CreateBatchCVProcessor } from "./processors/create-batch-cv.processor";
+import { CreateBatchJobProcessor } from "./processors/create-batch-job.processor";
 
 @Module({
   providers: [
@@ -24,6 +25,7 @@ import { CreateBatchCVProcessor } from "./processors/create-batch-cv.processor";
     RecommendCandidateProcessor,
     UpdateJobStatusProcessor,
     CreateBatchCVProcessor,
+    CreateBatchJobProcessor
   ],
   imports: [
     BullModule.registerQueue({ name: "upload-cv" }),
@@ -33,6 +35,7 @@ import { CreateBatchCVProcessor } from "./processors/create-batch-cv.processor";
     BullModule.registerQueue({ name: "recommend-jobs" }),
     BullModule.registerQueue({ name: "recommend-candidate" }),
     BullModule.registerQueue({ name: "create-batch-cv" }),
+    BullModule.registerQueue({ name: "create-batch-job" }),
     HttpModule,
     forwardRef(() => CVModule),
     ApplicantModule,

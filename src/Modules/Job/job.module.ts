@@ -9,6 +9,7 @@ import { CompanyModule } from "../company/company.module";
 import { QueueModule } from "src/queue/queue.module";
 import { IndustryModule } from "../industry/industry.module";
 import { RecommendAiJobModule } from "../recommend-ai-company/recommend-ai-company.module";
+import { CVModule } from "../CV/cv.module";
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { RecommendAiJobModule } from "../recommend-ai-company/recommend-ai-compa
     TypeOrmModule.forFeature([Job]),
     QueueModule,
     IndustryModule,
-    RecommendAiJobModule
+    RecommendAiJobModule,
+    CVModule
   ],
   controllers: [JobController],
   providers: [JobServices],

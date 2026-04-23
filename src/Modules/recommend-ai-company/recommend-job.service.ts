@@ -17,7 +17,7 @@ export class RecommendJobService {
     private batchRepository: Repository<RecommendationBatchJob>,
   ) {}
 
-  async createBatch(data: createBatch, manager: EntityManager) {
+  async createBatch(data: createBatch, manager?: EntityManager) {
     const repo = manager
       ? manager.getRepository(RecommendationBatchJob)
       : this.batchRepository;

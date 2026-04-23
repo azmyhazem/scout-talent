@@ -1,11 +1,14 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseBoolPipe,
   Post,
   Put,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { JobServices } from "./job.service";
@@ -42,8 +45,14 @@ export class JobController {
   public async getRecommendJob(
     @Param("jobId") jobId: string,
     @currentUser() company: JwtPayloadType,
+    @Query("isRefresh", new DefaultValuePipe(false), ParseBoolPipe)
+    isRefresh: boolean,
   ) {
-    const data = await this.jobService.getRecommendCandidate(company.id, jobId);
+    const data = await this.jobService.getRecommendCandidate(
+      company.id,
+      isRefresh,
+      jobId,
+    );
     return { data };
   }
 
