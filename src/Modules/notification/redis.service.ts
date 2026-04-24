@@ -8,11 +8,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     this.publisher = createClient({
-      //   url: process.env.REDIS_URL,
-      socket: {
-        host: process.env.REDIS_HOST ?? "localhost",
-        port: 6379,
-      },
+        url: process.env.REDIS_URL,
+    //   socket: {
+    //     host: process.env.REDIS_HOST ?? "localhost",
+    //     port: 6379,
+    //   },
     });
 
     this.subscriber = createClient({
