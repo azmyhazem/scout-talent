@@ -10,6 +10,7 @@ import {
 import { UserToken } from "./user-token.entity";
 import { Applicant } from "../applicant/applicant.entity";
 import { Company } from "../company/company.entity";
+import { Notification } from "../notification/notification.entity";
 
 @Entity({ name: "users" })
 export class User {
@@ -57,4 +58,7 @@ export class User {
 
   @OneToOne(() => Company)
   company: Company;
+
+  @OneToMany(() => Notification, (not) => not.user)
+  notification: Notification[];
 }

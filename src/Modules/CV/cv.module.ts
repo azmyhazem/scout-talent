@@ -9,6 +9,7 @@ import { UserModule } from "../Users/user.module";
 import { JwtModule } from "@nestjs/jwt";
 import { ApplicantModule } from "../applicant/applicant.module";
 import { QueueModule } from "src/queue/queue.module";
+import { NotificationModule } from "../notification/notification.module";
 
 @Module({
   controllers: [CVController],
@@ -40,7 +41,7 @@ import { QueueModule } from "src/queue/queue.module";
         fileSize: 2 * 1024 * 1024,
       },
     }),
-
+    forwardRef(()=>NotificationModule),
     forwardRef(() => QueueModule),
   ],
   exports: [CVService],

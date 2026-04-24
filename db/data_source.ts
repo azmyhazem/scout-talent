@@ -22,6 +22,7 @@ import { RecommendJobs } from "src/Modules/recommend-ai-cv/recommend-job.entity"
 import { RecommendCandidate } from "src/Modules/recommend-ai-company/recommend-candidate.entity";
 import { RecommendationBatchCV } from "src/Modules/recommend-ai-cv/recommendation-batch-cv.entity";
 import { RecommendationBatchJob } from "src/Modules/recommend-ai-company/recommendation-batch-job.entity";
+import { Notification } from "src/Modules/notification/notification.entity";
 
 config({ path: ".env" });
 
@@ -52,6 +53,7 @@ export const dataSourceOptions: DataSourceOptions = {
     RecommendCandidate,
     RecommendationBatchCV,
     RecommendationBatchJob,
+    Notification
   ],
   migrations: ["dist/db/migrations/*.js"],
 };

@@ -9,12 +9,14 @@ import { CV } from "./cv.entity";
 import { EntityManager, Repository } from "typeorm";
 import { ApplicantService } from "../applicant/applicant.service";
 import { StatusAI } from "src/Shared/Enums/statusAI.enum";
+import { NotificationService } from "../notification/notification.service";
 @Injectable()
 export class CVService {
   constructor(
     @InjectRepository(CV) private cvRepository: Repository<CV>,
     @Inject(forwardRef(() => ApplicantService))
     private applicantService: ApplicantService,
+    private notificationService: NotificationService,
   ) {}
 
   public async getLatestCVByIndustry(industryId: string) {
@@ -27,7 +29,7 @@ export class CVService {
         },
       },
       order: { createdAt: "DESC" },
-      relations:['applicant']
+      relations: ["applicant"],
     });
   }
 
@@ -62,6 +64,11 @@ export class CVService {
     });
 
     const cvN = await this.cvRepository.save(cv);
+
+    await this.notificationService.create(
+      userId,
+      "Your CV is now part of your professional profile. Let the opportunities find you 🚀",
+    );
 
     return {
       message: "cv upload successful",
