@@ -144,25 +144,7 @@ export class JobServices implements OnModuleInit {
       industry: industryR,
     });
 
-    const job = await this.jobRepository.save(Njob);
-
-    await this.upload_job.add(
-      "job",
-      {
-        jobId: job.id,
-        title,
-        description: `${description}, ${requirements}, ${responsibilities.join(" | ")}`,
-        seniority,
-        required_skills: skills,
-      },
-      {
-        attempts: 3,
-        backoff: {
-          type: "exponential",
-          delay: 2000,
-        },
-      },
-    );
+    await this.jobRepository.save(Njob);
 
     return { message: "add job successful" };
   }
@@ -407,6 +389,26 @@ export class JobServices implements OnModuleInit {
     if (!job) throw new BadRequestException("no job found");
 
     const { status } = dto;
+
+    if (job.status === JobStatus.DRAFT && status === JobStatus.PUBLISHED) {
+      await this.upload_job.add(
+        "job",
+        {
+          jobId: job.id,
+          title: job.title,
+          description: `${job.description}, ${job.requirements}, ${job.responsibilities.join(" | ")}`,
+          seniority: job.seniority,
+          required_skills: job.skills,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: "exponential",
+            delay: 2000,
+          },
+        },
+      );
+    }
 
     const terminalStates = [
       JobStatus.APPLICATIONS_FULL,

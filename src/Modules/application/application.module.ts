@@ -14,6 +14,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { OfferController } from "./offer.controller";
 import { ApplicantModule } from "../applicant/applicant.module";
 import { QueueModule } from "src/queue/queue.module";
+import { NotificationModule } from "../notification/notification.module";
 
 @Module({
   controllers: [CandidateController ,OfferController],
@@ -25,6 +26,7 @@ import { QueueModule } from "src/queue/queue.module";
     forwardRef(()=>JobModule),
     CVModule,
     forwardRef(()=>ApplicantModule),
+    NotificationModule,
     TypeOrmModule.forFeature([
       JobApplicant,
       FeedBack,

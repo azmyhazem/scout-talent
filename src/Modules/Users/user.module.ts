@@ -14,13 +14,13 @@ import { ApplicantModule } from "../applicant/applicant.module";
   providers: [UserService],
   imports: [
     forwardRef(() => JobModule),
-    forwardRef(()=>ApplicationModule),
+    forwardRef(() => ApplicationModule),
     MailModule,
     TypeOrmModule.forFeature([User]),
-    JwtModule,
-    forwardRef(()=>CompanyModule),
-    forwardRef(()=>ApplicantModule)
+    JwtModule.register({}),
+    forwardRef(() => CompanyModule),
+    forwardRef(() => ApplicantModule),
   ],
-  exports: [UserService],
+  exports: [UserService, JwtModule],
 })
 export class UserModule {}

@@ -24,6 +24,8 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import type { AIResult } from "./interface/result.interface";
 import { StatusAI } from "src/Shared/Enums/statusAI.enum";
+import { NotificationService } from "../notification/notification.service";
+import { NotificationType } from "src/Shared/Enums/notification.enum";
 
 @Injectable()
 export class ApplicationService {
@@ -46,6 +48,8 @@ export class ApplicationService {
 
     @InjectQueue("analyze-match")
     private analyze_match: Queue,
+
+    private notificationService: NotificationService,
   ) {}
 
   public findOneByUserId(id: string, userId: string) {
@@ -56,6 +60,13 @@ export class ApplicationService {
           company: { user: { id: userId } },
         },
       },
+      relations: [
+        "job",
+        "job.company",
+        "job.company.user",
+        "applicant",
+        "applicant.user",
+      ],
     });
   }
 
@@ -286,6 +297,21 @@ export class ApplicationService {
 
       const Nreject = await manager.save(reject);
 
+      await this.notificationService.create(
+        jobApplication.applicant.user.id,
+        {
+          type: NotificationType.REJECTED,
+          body: `Thank you for applying to ${jobApp.job.title} at ${jobApp.job.company.user.name}. We've decided to move forward with other candidates, but we encourage you to apply again in the future.`,
+          meta: {
+            jobId: jobApp.job.id,
+            companyName: jobApplication.job.company.user.name,
+            jobTitle: jobApplication.job.title,
+          },
+          user: jobApplication.applicant.user,
+        },
+        manager,
+      );
+
       return {
         message: "convert cadidate status to rejected successful",
         data: {
@@ -346,6 +372,20 @@ export class ApplicationService {
 
       const savedHired = await manager.save(hired);
 
+      await this.notificationService.create(
+        jobAppDB.applicant.user.id,
+        {
+          type: NotificationType.HIRED,
+          body: `You're hired! 🎉 ${jobAppDB.job.company.user.name} has officially selected you for the ${jobAppDB.job.title} role. Wishing you great success in your new journey!`,
+          meta: {
+            jobId: jobApply.id,
+            companyName: jobAppDB.job.company.user.name,
+          },
+          user: jobAppDB.applicant.user,
+        },
+        manager,
+      );
+
       return {
         message: "convert candidate status to hired successful",
         data: {
@@ -398,6 +438,22 @@ export class ApplicationService {
           meetingLink,
           durationMin,
           application: jobApp,
+        },
+        manager,
+      );
+
+      await this.notificationService.create(
+        jobApplicantion.applicant.user.id,
+        {
+          type: NotificationType.INTERVIEW_SCHEDULED,
+          body: `Your ${jobApplicantion.job.title} interview with ${jobApplicantion.job.company.user.name} is scheduled for ${scheduledAt}. Good luck!`,
+          meta: {
+            interviewId: interview.id,
+            companyName: jobApplicantion.job.company.user.name,
+            interviewDate: scheduledAt,
+            jobTitle: jobApplicantion.job.title,
+          },
+          user: jobApplicantion.applicant.user,
         },
         manager,
       );
@@ -455,6 +511,20 @@ export class ApplicationService {
           notes,
           expiresAt: expiredDate,
           application: jobApp,
+        },
+        manager,
+      );
+
+      await this.notificationService.create(
+        jobApplicantion.applicant.user.id,
+        {
+          type: NotificationType.OFFER_SENT,
+          body: `Congratulations! 🎉 You've received an offer from ${jobApplicantion.job.company.user.name} for the ${jobApplicantion.job.title} role. Review the details and take your next step.`,
+          meta: {
+            jobId: jobApp.id,
+            companyName: jobApplicantion.job.company.user.name,
+          },
+          user: jobApplicantion.applicant.user,
         },
         manager,
       );

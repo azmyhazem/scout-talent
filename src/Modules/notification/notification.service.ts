@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { NotificationGateway } from "./notification.gateway";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Notification } from "./notification.entity";
-import { Repository } from "typeorm";
+import { EntityManager, Repository } from "typeorm";
 import { RedisService } from "./redis.service";
+import { createNotificationDTO } from "./dto/createnotification.dto";
 
 @Injectable()
 export class NotificationService {
@@ -13,17 +13,20 @@ export class NotificationService {
     private redisService: RedisService,
   ) {}
 
-  async create(userId: string, content: string) {
-    const notification = this.notificationRepo.create({
-      user: {
-        id: userId,
-      },
-      content,
-    });
+  async create(
+    userId: string,
+    data: createNotificationDTO,
+    manager?: EntityManager,
+  ) {
+    const repo = manager
+      ? manager.getRepository(Notification)
+      : this.notificationRepo;
 
-    await this.notificationRepo.save(notification);
+    const notification = repo.create(data);
 
-    this.redisService.publish("notification", { userId, content });
+    await repo.save(notification);
+
+    this.redisService.publish("notification", { userId, data });
 
     return notification;
   }

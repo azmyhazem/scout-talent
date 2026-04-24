@@ -15,21 +15,30 @@ import { CancelBy } from "src/Shared/Enums/interviewCancel.enum";
 import { mintesToMilliseconds } from "src/Shared/utils/cookie.util";
 import { JobApplicant } from "../application/job_applicant.entity";
 import { ApplicationService } from "../application/application.service";
+import { NotificationService } from "../notification/notification.service";
+import { NotificationType } from "src/Shared/Enums/notification.enum";
 
 @Injectable()
 export class InterviewService {
   constructor(
     @InjectDataSource()
     private dataSource: DataSource,
+
     @InjectRepository(JobApplicant)
     private jobApplicantRepository: Repository<JobApplicant>,
+
     @InjectRepository(Interview)
     private interviewRepository: Repository<Interview>,
+
     @InjectRepository(FeedBack)
     private feedbackRepository: Repository<FeedBack>,
+
     @InjectRepository(CancelInterview)
     private cancelInterviewRepository: Repository<CancelInterview>,
-    private applicationService:ApplicationService
+
+    private applicationService: ApplicationService,
+
+    private notificationService: NotificationService,
   ) {}
 
   public async getAllInterviewWithCompany(userId: string) {
@@ -81,9 +90,13 @@ export class InterviewService {
         id: interviewId,
         application: { job: { company: { user: { id: userId } } } },
       },
-      relations: {
-        application: true,
-      },
+      relations: [
+        "application",
+        "application.job",
+        "application.job.company",
+        "application.job.company.user",
+        "application.applicant.user",
+      ],
     });
     if (!interview) throw new BadRequestException("there is no interview");
 
@@ -170,6 +183,20 @@ export class InterviewService {
 
       await manager.save(feedback);
 
+      await this.notificationService.create(
+        interview.application.applicant.user.id,
+        {
+          type: NotificationType.FEEDBACK_SUBMITTED,
+          body: `${interview.application.job.company.user.name} has submitted feedback for your ${interview.application.job.title} interview. Next step: ${nextStep}.`,
+          meta: {
+            companyName: interview.application.job.company.user.name,
+            nextStep,
+          },
+          user: interview.application.applicant.user,
+        },
+        manager,
+      );
+
       return {
         data: {
           feedback,
@@ -186,9 +213,17 @@ export class InterviewService {
     const interview = await this.interviewRepository.findOne({
       where: {
         id: interviewId,
-        application: { job: { company: { id: companyId } } },
+        application: { job: { company: { user: { id: companyId } } } },
       },
+      relations: [
+        "application",
+        "application.job",
+        "application.job.company",
+        "application.job.company.user",
+        "application.applicant.user",
+      ],
     });
+
     if (!interview) throw new BadRequestException("there is no interview");
 
     if (
@@ -226,21 +261,39 @@ export class InterviewService {
       interview.durationMin,
     );
 
-    interview.scheduledAt = scheduledDate;
-    interview.meetingLink = dto.meetingLink;
-    interview.durationMin = dto.durationMin;
-    interview.status = InterviewStatus.RESCHEDULED;
+    return this.dataSource.transaction(async (manager) => {
+      interview.scheduledAt = scheduledDate;
+      interview.meetingLink = dto.meetingLink;
+      interview.durationMin = dto.durationMin;
+      interview.status = InterviewStatus.RESCHEDULED;
 
-    const Ninter = await this.interviewRepository.save(interview);
+      const Ninter = await manager.save(interview);
 
-    return {
-      data: {
-        id: Ninter.id,
-        status: Ninter.status,
-        scheduledAt: Ninter.scheduledAt,
-        meetingLink: Ninter.meetingLink,
-      },
-    };
+      await this.notificationService.create(
+        interview.application.applicant.user.id,
+        {
+          type: NotificationType.INTERVIEW_RESCHEDULED,
+          body: `Your interview for ${interview.application.job.title} at ${interview.application.job.company.user.name} has been rescheduled to ${dto.scheduledAt}. Please check your dashboard for updated details.`,
+          meta: {
+            interviewId: interview.id,
+            companyName: interview.application.job.company.user.name,
+            interviewDate: dto.scheduledAt,
+            jobTitle: interview.application.job.title,
+          },
+          user: interview.application.applicant.user,
+        },
+        manager,
+      );
+
+      return {
+        data: {
+          id: Ninter.id,
+          status: Ninter.status,
+          scheduledAt: Ninter.scheduledAt,
+          meetingLink: Ninter.meetingLink,
+        },
+      };
+    });
   }
 
   public async cancelInterview(
@@ -278,7 +331,13 @@ export class InterviewService {
 
     const interview = await this.interviewRepository.findOne({
       where,
-      relations: ["application"],
+      relations: [
+        "application",
+        "application.job",
+        "application.job.company",
+        "application.job.company.user",
+        "application.applicant.user",
+      ],
     });
     if (!interview) throw new BadRequestException("there is no interview");
 
@@ -302,6 +361,21 @@ export class InterviewService {
         Ninter.application.job.company.id,
         Ninter.application.id,
         { reason: `the interview cancel by ${cancelBy} + ${dto.reason}` },
+      );
+
+      await this.notificationService.create(
+        interview.application.applicant.user.id,
+        {
+          type: NotificationType.INTERVIEW_CANCELLED,
+          body: `Your ${interview.application.job.title} interview with ${interview.application.job.company.user.name} has been cancelled. You can check your dashboard for updates or explore other opportunities.`,
+          meta: {
+            interviewId: interview.id,
+            companyName: interview.application.job.company.user.name,
+            jobTitle: interview.application.job.title,
+          },
+          user: interview.application.applicant.user,
+        },
+        manager,
       );
 
       return {
@@ -354,7 +428,6 @@ export class InterviewService {
   }
 
   public async getInterviewStatsWithCompany(companyId: string) {
-
     const total = await this.totalCompany(companyId);
 
     const todayInterview = await this.todayInterviewCompany(companyId);

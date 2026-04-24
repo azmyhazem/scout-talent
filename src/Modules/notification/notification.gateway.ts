@@ -36,7 +36,7 @@ export class NotificationGateway
     setTimeout(() => {
       this.redisService.subscribe("notification", (data) => {
         console.log(data)
-        this.sendNotification(data.userId, data.content);
+        this.sendNotification(data.userId, data);
       });
     }, 1000);
   }

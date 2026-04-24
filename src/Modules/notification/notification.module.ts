@@ -10,8 +10,11 @@ import { RedisService } from "./redis.service";
 
 @Module({
   providers: [NotificationGateway, NotificationService, RedisService],
-  imports: [TypeOrmModule.forFeature([Notification]), 
-  forwardRef(()=>UserModule),JwtModule ],
+  imports: [
+    TypeOrmModule.forFeature([Notification]),
+    forwardRef(() => UserModule),
+    JwtModule,
+  ],
   controllers: [NotificationController],
   exports: [NotificationService],
 })
