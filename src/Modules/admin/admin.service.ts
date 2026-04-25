@@ -20,6 +20,14 @@ export class AdminService {
 
     const offersSent = await this.applicationService.getOffersSent();
 
+    const newSignupsToday = await this.userService.getSignUpTodayCount();
+
+    const pendingVerifications = await this.userService.getPendingUsersCount();
+
+    const hiredThisWeek = await this.applicationService.getHiredThisWeekCount();
+
+    const rejectedToday = await this.applicationService.rejectTodayCount();
+
     const recentUsers = await this.userService.getRecentUsers();
 
     const recentJobs = await this.jobService.getRecentJobs();
@@ -27,6 +35,12 @@ export class AdminService {
     return {
       data: {
         status: { totalUser, activeJobs, revenueMRR, offersSent },
+        activity: {
+          newSignupsToday,
+          pendingVerifications,
+          hiredThisWeek,
+          rejectedToday,
+        },
         recentUsers,
         recentJobs,
       },

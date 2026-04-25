@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./user.entity";
-import { EntityManager, Repository } from "typeorm";
+import { Between, EntityManager, Repository } from "typeorm";
 import { RoleUser } from "src/Shared/Enums/user.enum";
 import { ApplicantService } from "../applicant/applicant.service";
 import { CompanyService } from "../company/company.service";
@@ -144,6 +144,20 @@ export class UserService {
         role: true,
         status: true,
         createAt: true,
+      },
+    });
+  }
+
+  async getSignUpTodayCount() {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return this.userRepository.count({
+      where: {
+        createAt: Between(startOfDay, endOfDay),
       },
     });
   }

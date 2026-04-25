@@ -1,7 +1,13 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { JobApplicant } from "./job_applicant.entity";
-import { Brackets, DataSource, EntityManager, Repository } from "typeorm";
+import {
+  Between,
+  Brackets,
+  DataSource,
+  EntityManager,
+  Repository,
+} from "typeorm";
 import { CVService } from "../CV/cv.service";
 import { applyJobDTO } from "./dto/applyJob.dto";
 import { JobType, WorkMode } from "src/Shared/Enums/job.enum";
@@ -44,6 +50,9 @@ export class ApplicationService {
 
     @InjectRepository(HiredDetails)
     private hiredDetialRepository: Repository<HiredDetails>,
+
+    @InjectRepository(Reject)
+    private rejectRepository: Repository<Reject>,
 
     private cvService: CVService,
     private jobService: JobServices,
@@ -728,6 +737,40 @@ export class ApplicationService {
 
   async getHiredCount() {
     return this.hiredDetialRepository.count();
+  }
+
+  async getHiredThisWeekCount() {
+    const now = new Date();
+
+    // بداية الأسبوع (الأحد)
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    // نهاية الأسبوع (السبت)
+    const endOfWeek = new Date(now);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    return this.hiredDetialRepository.count({
+      where: {
+        createdAt: Between(startOfWeek, endOfWeek),
+      },
+    });
+  }
+
+  async rejectTodayCount() {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return this.rejectRepository.count({
+      where: {
+        createdAt: Between(startOfDay, endOfDay),
+      },
+    });
   }
 
   async getApplicationCount() {

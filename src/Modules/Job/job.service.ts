@@ -520,6 +520,8 @@ export class JobServices implements OnModuleInit {
         title: true,
         status: true,
         createdAt: true,
+        applicationsCount: true,
+        acceptedCount: true,
         company: {
           user: {
             name: true,
