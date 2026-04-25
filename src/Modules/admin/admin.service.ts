@@ -121,7 +121,7 @@ export class AdminService {
   public async companiesList(page: number, limit: number) {
     const totalCompanies = await this.userService.getCompanyUsersCount();
 
-    const ban = await this.userService.getCompanyUsersCount();
+    const ban = await this.userService.getBanCompaniessCount();
 
     const active = await this.userService.getVerifiedCompaniesCount();
 
