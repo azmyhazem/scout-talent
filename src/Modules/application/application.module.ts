@@ -15,6 +15,7 @@ import { OfferController } from "./offer.controller";
 import { ApplicantModule } from "../applicant/applicant.module";
 import { QueueModule } from "src/queue/queue.module";
 import { NotificationModule } from "../notification/notification.module";
+import { HiredDetails } from "./Hired_Details.entity";
 
 @Module({
   controllers: [CandidateController ,OfferController],
@@ -33,6 +34,7 @@ import { NotificationModule } from "../notification/notification.module";
       JobOffer,
       Reject,
       Interview,
+      HiredDetails
     ]),
     forwardRef(()=>QueueModule)
   ],

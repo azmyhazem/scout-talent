@@ -126,4 +126,97 @@ export class UserService {
 
     return { message: "Account deleted successfully" };
   }
+
+  async getTotalUsers() {
+    return this.userRepository.count();
+  }
+
+  async getRecentUsers() {
+    return this.userRepository.find({
+      order: {
+        createAt: "DESC",
+      },
+      take: 10,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+        createAt: true,
+      },
+    });
+  }
+
+  async getVerifiedUsersCount() {
+    return this.userRepository.count({
+      where: { isEmailVerified: true },
+    });
+  }
+
+  async getVerifiedCompaniesCount() {
+    return this.userRepository.count({
+      where: { role: RoleUser.COMPANY, isEmailVerified: true },
+    });
+  }
+
+  async getPendingUsersCount() {
+    return this.userRepository.count({
+      where: { isEmailVerified: false },
+    });
+  }
+
+  async getDeleteUsersCount() {
+    return this.userRepository.count({
+      where: { isDelete: true },
+    });
+  }
+
+  async getBanUsersCount() {
+    return this.userRepository.count({
+      where: { isBanned: true },
+    });
+  }
+
+  async getBanCompaniessCount() {
+    return this.userRepository.count({
+      where: { role: RoleUser.COMPANY, isBanned: true },
+    });
+  }
+
+  async getApplicantUsersCount() {
+    return this.userRepository.count({
+      where: { role: RoleUser.APPLICANT },
+    });
+  }
+
+  async getCompanyUsersCount() {
+    return this.userRepository.count({
+      where: { role: RoleUser.COMPANY },
+    });
+  }
+
+  async getUsers(skip: number, limit: number) {
+    return this.userRepository.find({ skip, take: limit });
+  }
+
+  async getCompanies(skip: number, limit: number) {
+    return this.userRepository.find({
+      where: { role: RoleUser.COMPANY },
+      skip,
+      take: limit,
+    });
+  }
+
+  async updateIsBan(id: string, ban: boolean) {
+    return this.userRepository.update(id, { isBanned: ban });
+  }
+
+  async findCompany(id: string) {
+    const company = await this.userRepository.findOne({
+      where: { id, role: RoleUser.COMPANY },
+    });
+
+    return company;
+  }
 }

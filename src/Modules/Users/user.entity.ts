@@ -1,4 +1,4 @@
-import { RoleUser } from "src/Shared/Enums/user.enum";
+import { RoleUser, UserStatus } from "src/Shared/Enums/user.enum";
 import {
   Column,
   CreateDateColumn,
@@ -49,6 +49,12 @@ export class User {
 
   @CreateDateColumn({ type: "timestamptz" })
   createAt: Date;
+
+  @Column({ type: "enum", enum: UserStatus, default: UserStatus.ONLINE })
+  status: UserStatus;
+
+  @Column({ default: false })
+  isBanned: boolean;
 
   @OneToMany(() => UserToken, (token) => token.user)
   tokens: UserToken[];

@@ -20,6 +20,7 @@ import { BullModule } from "@nestjs/bullmq";
 import { QueueModule } from "./queue/queue.module";
 import { RecommendAiModule } from "./Modules/recommend-ai-cv/recommend-ai-cv.module";
 import { NotificationModule } from "./Modules/notification/notification.module";
+import { AdminModule } from "./Modules/admin/admin.module";
 @Module({
   imports: [
     UserModule,
@@ -37,6 +38,7 @@ import { NotificationModule } from "./Modules/notification/notification.module";
     QueueModule,
     RecommendAiModule,
     NotificationModule,
+    AdminModule,
     TypeOrmModule.forRoot(dataSourceOptions),
     ConfigModule.forRoot({
       isGlobal: true,

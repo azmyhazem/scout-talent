@@ -42,6 +42,9 @@ export class ApplicationService {
     @InjectRepository(JobOffer)
     private jobOfferRepository: Repository<JobOffer>,
 
+    @InjectRepository(HiredDetails)
+    private hiredDetialRepository: Repository<HiredDetails>,
+
     private cvService: CVService,
     private jobService: JobServices,
     private applicantService: ApplicantService,
@@ -717,6 +720,18 @@ export class ApplicationService {
     if (!offers) throw new BadRequestException("there is no offer");
 
     return offers;
+  }
+
+  async getOffersSent() {
+    return this.jobOfferRepository.count();
+  }
+
+  async getHiredCount() {
+    return this.hiredDetialRepository.count();
+  }
+
+  async getApplicationCount() {
+    return this.jobApplicantRepository.count();
   }
 
   public async allOfferByCompany(userId: string) {

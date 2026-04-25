@@ -498,6 +498,44 @@ export class JobServices implements OnModuleInit {
     });
   }
 
+  async getActiveJobs() {
+    return this.jobRepository.count({
+      where: { status: JobStatus.PUBLISHED },
+    });
+  }
+
+  async getAllJobsCount() {
+    return this.jobRepository.count();
+  }
+
+  async getRecentJobs() {
+    return this.jobRepository.find({
+      order: {
+        createdAt: "DESC", // الأحدث أولًا
+      },
+      take: 10,
+      relations: ["company", "company.user"],
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        createdAt: true,
+        company: {
+          user: {
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getAllJobForAdmin(skip: number, limit: number) {
+    return this.jobRepository.find({
+      skip,
+      take: limit,
+    });
+  }
+
   private getDateBeforeMonths(month: number) {
     const date = new Date();
 
