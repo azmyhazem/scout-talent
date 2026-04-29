@@ -65,7 +65,6 @@ export class UserService {
       refreshToken: string;
       linkedIn_profile?: string;
       location?: string;
-      slug?: string
     },
     manger?: EntityManager,
   ) {

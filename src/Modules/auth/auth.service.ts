@@ -422,6 +422,7 @@ export class AuthService {
         password: hash,
         isEmailVerified: true,
         role: RoleUser.APPLICANT,
+        slug: this.generateSlug(name),
       });
 
       return {
@@ -484,7 +485,6 @@ export class AuthService {
           refreshToken: HrefreshToken,
           linkedIn_profile,
           location,
-          slug: this.generateSlug(user.name)
         },
         manager,
       );
