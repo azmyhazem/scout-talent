@@ -484,6 +484,7 @@ export class AuthService {
           refreshToken: HrefreshToken,
           linkedIn_profile,
           location,
+          slug: this.generateSlug(user.name)
         },
         manager,
       );
