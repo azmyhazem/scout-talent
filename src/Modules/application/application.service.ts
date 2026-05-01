@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from "@nestjs/common";
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { JobApplicant } from "./job_applicant.entity";
 import {
@@ -55,7 +60,11 @@ export class ApplicationService {
     private rejectRepository: Repository<Reject>,
 
     private cvService: CVService,
+
+    @Inject(forwardRef(() => JobServices))
     private jobService: JobServices,
+
+    @Inject(forwardRef(() => ApplicantService))
     private applicantService: ApplicantService,
 
     @InjectQueue("analyze-match")
@@ -78,6 +87,7 @@ export class ApplicationService {
         "job.company.user",
         "applicant",
         "applicant.user",
+        "offer",
       ],
     });
   }
@@ -729,6 +739,20 @@ export class ApplicationService {
     if (!offers) throw new BadRequestException("there is no offer");
 
     return offers;
+  }
+
+  public async getApplicationjob(jobId: string, applicantId: string) {
+    return this.jobApplicantRepository.findOne({
+      where: {
+        job: {
+          id: jobId,
+        },
+        applicant: {
+          id: applicantId,
+        },
+      },
+      relations: ["job", "applicant"],
+    });
   }
 
   async getOffersSent() {

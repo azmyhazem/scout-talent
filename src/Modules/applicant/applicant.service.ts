@@ -40,6 +40,7 @@ export class ApplicantService implements OnModuleInit {
     private cvServcie: CVService,
     private recommendAiService: RecommendAiService,
 
+    @Inject(forwardRef(() => JobServices))
     private jobService: JobServices,
 
     @InjectQueue("create-batch-cv")

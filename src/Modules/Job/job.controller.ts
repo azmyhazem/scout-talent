@@ -56,6 +56,19 @@ export class JobController {
     return { data };
   }
 
+  @Get("candidate/invit/:jobId/:userId/:recommendId")
+  @Roles(RoleUser.COMPANY)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  public async invitCandidate(
+    @Param("jobId") jobId: string,
+    @Param("userId") userId: string,
+    @Param("recommendId") recommendId: string,
+    @currentUser() company: JwtPayloadType,
+  ) {
+    return this.jobService.invitCandidate(userId,jobId,recommendId,company.id)
+  }
+
   @Get("allJob")
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)

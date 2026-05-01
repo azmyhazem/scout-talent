@@ -6,6 +6,7 @@ export enum NotificationType {
   INTERVIEW_RESCHEDULED = "interview_rescheduled",
   INTERVIEW_CANCELLED = "interview_cancelled",
   REJECTED = "rejected",
+  INVIT = "Invit",
 }
 
 export const NotificationTitleMap: Record<NotificationType, string> = {
@@ -16,4 +17,5 @@ export const NotificationTitleMap: Record<NotificationType, string> = {
   [NotificationType.INTERVIEW_RESCHEDULED]: "Interview Rescheduled",
   [NotificationType.INTERVIEW_CANCELLED]: "Interview Cancelled",
   [NotificationType.REJECTED]: "Application Update",
+  [NotificationType.INVIT]: "Invit Applicant",
 };

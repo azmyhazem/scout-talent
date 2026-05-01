@@ -32,6 +32,9 @@ export class RecommendCandidate {
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
 
+  @Column({ default: false })
+  isInvit: boolean;
+
   @ManyToOne(() => RecommendationBatchJob, (batch) => batch.recommendation, {
     onDelete: "CASCADE",
   })

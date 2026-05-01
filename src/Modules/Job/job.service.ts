@@ -5,9 +5,9 @@ import {
   Injectable,
   OnModuleInit,
 } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { Job } from "./job.entity";
-import { EntityManager, In, MoreThan, Repository } from "typeorm";
+import { DataSource, EntityManager, In, MoreThan, Repository } from "typeorm";
 import { addJobDTO } from "./dto/addJob.dto";
 import { updateJobDTO } from "./dto/updateJob.dto";
 import { JobStatus, JobType, WorkMode } from "src/Shared/Enums/job.enum";
@@ -20,6 +20,10 @@ import { IndustryRepository } from "../industry/industry.repository";
 import { RecommendJobService } from "../recommend-ai-company/recommend-job.service";
 import { RecommendationBatchJob } from "../recommend-ai-company/recommendation-batch-job.entity";
 import { CVService } from "../CV/cv.service";
+import { ApplicantService } from "../applicant/applicant.service";
+import { ApplicationService } from "../application/application.service";
+import { NotificationService } from "../notification/notification.service";
+import { NotificationType } from "src/Shared/Enums/notification.enum";
 
 @Injectable()
 export class JobServices implements OnModuleInit {
@@ -27,6 +31,10 @@ export class JobServices implements OnModuleInit {
 
   constructor(
     @InjectRepository(Job) private jobRepository: Repository<Job>,
+
+    @InjectDataSource()
+    private dataSource: DataSource,
+
     @Inject(forwardRef(() => CompanyService))
     private companyService: CompanyService,
 
@@ -44,14 +52,22 @@ export class JobServices implements OnModuleInit {
 
     @InjectQueue("create-batch-job")
     private create_batch_job: Queue,
+
+    @Inject(forwardRef(() => ApplicantService))
+    private applicantService: ApplicantService,
+
+    @Inject(forwardRef(() => ApplicationService))
+    private applicationService: ApplicationService,
+
+    private notificationService: NotificationService,
   ) {}
 
   onModuleInit() {
     this.queueEvents = new QueueEvents("create-batch-job", {
       connection: {
-        url: process.env.REDIS_URL,
-        // host: process.env.REDIS_HOST ?? "localhost",
-        // port: 6379,
+        // url: process.env.REDIS_URL,
+        host: process.env.REDIS_HOST ?? "localhost",
+        port: 6379,
       },
     });
   }
@@ -285,6 +301,77 @@ export class JobServices implements OnModuleInit {
     }
 
     return null; // ⏱️ Timed out
+  }
+
+  public async invitCandidate(
+    userId: string,
+    jobId: string,
+    recommendId: string,
+    companyId: string,
+  ) {
+    const applicant =
+      await this.applicantService.findApplicantWithIdUser(userId);
+
+    if (!applicant) {
+      throw new BadRequestException("no applicant found");
+    }
+
+    const job = await this.jobRepository
+      .createQueryBuilder("job")
+      .leftJoin("job.company", "company")
+      .leftJoin("company.user", "user")
+      .where("job.id = :id AND user.id=:userId", {
+        jobId,
+        companyId,
+      })
+      .select([
+        "job.id",
+        "job.title",
+        "job.description",
+        "job.jobIdAi",
+        "company.id",
+        "user.name",
+      ])
+      .getOne();
+
+    if (!job) {
+      throw new BadRequestException("no job found");
+    }
+
+    const jobApply = await this.applicationService.getApplicationjob(
+      jobId,
+      applicant.id,
+    );
+
+    if (jobApply) {
+      return {
+        data: {
+          message: "this candidate already apply ",
+          application: { id: jobApply.id },
+        },
+      };
+    }
+
+    await this.dataSource.transaction(async (manager) => {
+      await this.recommendCandidateService.updateIsInvit(recommendId, manager);
+
+      await this.notificationService.create(
+        userId,
+        {
+          type: NotificationType.INVIT,
+          body: `You’ve been invited to apply for the position "${job.title}" at ${job.company.user.name}. Check the job details and submit your application now.`,
+          meta: {
+            jobId,
+            jobTitle: job.title,
+            companyName: job.company.user.name,
+          },
+          user: applicant.user,
+        },
+        manager,
+      );
+    });
+
+    return true;
   }
 
   /**

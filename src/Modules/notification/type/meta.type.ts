@@ -32,6 +32,7 @@ export type NotificationMetaMap = {
   [NotificationType.HIRED]: HiredMeta;
 
   [NotificationType.REJECTED]: RejectedMeta;
+  [NotificationType.INVIT]: RejectedMeta;
 
   [NotificationType.FEEDBACK_SUBMITTED]: {
     companyName: string;

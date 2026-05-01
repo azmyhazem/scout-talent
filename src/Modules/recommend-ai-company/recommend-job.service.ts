@@ -71,16 +71,35 @@ export class RecommendJobService {
       ? manager.getRepository(RecommendationBatchJob)
       : this.batchRepository;
 
-    return await repo.findOne({
+    return await repo
+      .createQueryBuilder("batch")
+      .leftJoinAndSelect("batch.recommendation", "recommendation")
+      .leftJoinAndSelect("recommendation.applicant", "applicant")
+      .leftJoinAndSelect("applicant.user", "user")
+
+      .addSelect("user.slug")
+
+      .where("batch.job.id = :jobId", { jobId })
+      .orderBy("batch.createdAt", "DESC")
+      .getOne();
+  }
+
+  async updateIsInvit(recommendId: string, manager: EntityManager) {
+    const repo = manager
+      ? manager.getRepository(RecommendCandidate)
+      : this.recommendCandidatesRepository;
+
+    const recommend = await repo.findOne({
       where: {
-        job: {
-          id: jobId,
-        },
+        id: recommendId,
       },
-      order: {
-        createdAt: "DESC",
-      },
-      relations: ["recommendation","recommendation.applicant.user"],
     });
+
+    if (!recommend) {
+      throw new BadRequestException("no recommend found");
+    }
+    recommend.isInvit = true;
+
+    return repo.save(recommend);
   }
 }

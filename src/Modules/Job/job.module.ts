@@ -10,6 +10,9 @@ import { QueueModule } from "src/queue/queue.module";
 import { IndustryModule } from "../industry/industry.module";
 import { RecommendAiJobModule } from "../recommend-ai-company/recommend-ai-company.module";
 import { CVModule } from "../CV/cv.module";
+import { ApplicantModule } from "../applicant/applicant.module";
+import { ApplicationModule } from "../application/application.module";
+import { NotificationModule } from "../notification/notification.module";
 
 @Module({
   imports: [
@@ -20,7 +23,10 @@ import { CVModule } from "../CV/cv.module";
     QueueModule,
     IndustryModule,
     RecommendAiJobModule,
-    CVModule
+    CVModule,
+    ApplicantModule,
+    ApplicationModule,
+    NotificationModule,
   ],
   controllers: [JobController],
   providers: [JobServices],
