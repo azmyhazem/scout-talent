@@ -320,7 +320,7 @@ export class JobServices implements OnModuleInit {
       .createQueryBuilder("job")
       .leftJoin("job.company", "company")
       .leftJoin("company.user", "user")
-      .where("job.id = :jobId AND user.id=:companyId", {
+      .where("job.id = :jobId AND user.id= :companyId", {
         jobId,
         companyId,
       })
@@ -328,7 +328,7 @@ export class JobServices implements OnModuleInit {
         "job.id",
         "job.title",
         "job.description",
-        "job.jobIdAi",
+        "job.jobIdAi", 
         "company.id",
         "user.name",
       ])
