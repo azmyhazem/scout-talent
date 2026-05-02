@@ -1,8 +1,10 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
   Patch,
+  Post,
   Query,
   UseGuards,
 } from "@nestjs/common";
@@ -11,6 +13,8 @@ import { Roles } from "src/Shared/decorator/user_role.decorator";
 import { RoleUser } from "src/Shared/Enums/user.enum";
 import { AuthGuard } from "../auth/guards/AuthUser.guard";
 import { ApiQuery, ApiSecurity } from "@nestjs/swagger";
+import { CreatePlanDTO } from "../plan/dto/createPlan.dto";
+import { UpdatePlanDTO } from "../plan/dto/updatePlan.dto";
 
 @Controller("admin")
 export class AdminController {
@@ -95,5 +99,37 @@ export class AdminController {
   @ApiSecurity("bearer")
   async jobDetails(@Param("id") id: string) {
     return this.adminService.jobDetails(id);
+  }
+
+  @Get("plans")
+  @Roles(RoleUser.ADMIN)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  async plans() {
+    return this.adminService.getPlans();
+  }
+
+  @Post("plans")
+  @Roles(RoleUser.ADMIN)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  async createPlan(@Body() body: CreatePlanDTO) {
+    return this.adminService.createPlans(body);
+  }
+
+  @Patch("plans/:id")
+  @Roles(RoleUser.ADMIN)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  async updatePlan(@Body() body: UpdatePlanDTO, @Param("id") id: string) {
+    return this.adminService.updatePlan(body, id);
+  }
+
+  @Get("subscriptions")
+  @Roles(RoleUser.ADMIN)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  async subscription() {
+    return this.adminService.getSubscription();
   }
 }

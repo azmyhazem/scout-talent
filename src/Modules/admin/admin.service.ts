@@ -2,6 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { UserService } from "../Users/user.service";
 import { JobServices } from "../Job/job.service";
 import { ApplicationService } from "../application/application.service";
+import { PlanService } from "../plan/plan.service";
+import { SubscriptionService } from "../subscription/subscription.service";
+import { CreatePlanDTO } from "../plan/dto/createPlan.dto";
+import { UpdatePlanDTO } from "../plan/dto/updatePlan.dto";
 
 @Injectable()
 export class AdminService {
@@ -9,6 +13,8 @@ export class AdminService {
     private userService: UserService,
     private jobService: JobServices,
     private applicationService: ApplicationService,
+    private planService: PlanService,
+    private subscriptionService: SubscriptionService,
   ) {}
 
   public async dashboardAdmin() {
@@ -197,6 +203,76 @@ export class AdminService {
 
     return {
       data: job,
+    };
+  }
+
+  public async getPlans() {
+    const plans = await this.planService.getAllPlan();
+
+    const totalPlans = await this.planService.countAllPlans();
+    const activePlans = await this.planService.countAllPlansActive();
+
+    const totalSubscribers = await this.subscriptionService.countSubscription();
+
+    const enterpriseSubscribers =
+      await this.subscriptionService.countEnterpriseSubscribers();
+
+    return {
+      data: {
+        plans,
+        stats: {
+          totalPlans,
+          activePlans,
+          totalSubscribers,
+          enterpriseSubscribers,
+        },
+      },
+    };
+  }
+
+  public async createPlans(dto: CreatePlanDTO) {
+    await this.planService.createPlan(dto);
+
+    return {
+      data: {
+        message: "Plan created successfully",
+      },
+    };
+  }
+
+  public async updatePlan(dto: UpdatePlanDTO, planId: string) {
+    await this.planService.updatePlan(dto, planId);
+
+    return {
+      data: {
+        message: "Plan updated successfully",
+      },
+    };
+  }
+
+  public async getSubscription() {
+    const totalSubscriptions =
+      await this.subscriptionService.countSubscription();
+
+    const proSubscribers = await this.subscriptionService.countProSubscribers();
+
+    const enterpriseSubscribers =
+      await this.subscriptionService.countEnterpriseSubscribers();
+
+    const mrr = await this.subscriptionService.mrr();
+
+    const subscriptions = await this.subscriptionService.allSubscription();
+
+    return {
+      data: {
+        stats: {
+          totalSubscriptions,
+          proSubscribers,
+          enterpriseSubscribers,
+          mrr,
+        },
+        subscriptions,
+      },
     };
   }
 }

@@ -21,6 +21,8 @@ import { QueueModule } from "./queue/queue.module";
 import { RecommendAiModule } from "./Modules/recommend-ai-cv/recommend-ai-cv.module";
 import { NotificationModule } from "./Modules/notification/notification.module";
 import { AdminModule } from "./Modules/admin/admin.module";
+import { PlanModule } from "./Modules/plan/plan.module";
+import { SubscriptionModule } from "./Modules/subscription/subscription.module";
 @Module({
   imports: [
     UserModule,
@@ -39,6 +41,8 @@ import { AdminModule } from "./Modules/admin/admin.module";
     RecommendAiModule,
     NotificationModule,
     AdminModule,
+    PlanModule,
+    SubscriptionModule,
     TypeOrmModule.forRoot(dataSourceOptions),
     ConfigModule.forRoot({
       isGlobal: true,

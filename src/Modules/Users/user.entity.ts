@@ -11,6 +11,7 @@ import { UserToken } from "./user-token.entity";
 import { Applicant } from "../applicant/applicant.entity";
 import { Company } from "../company/company.entity";
 import { Notification } from "../notification/notification.entity";
+import { Subscription } from "../subscription/subscription.entity";
 
 @Entity({ name: "users" })
 export class User {
@@ -67,4 +68,7 @@ export class User {
 
   @OneToMany(() => Notification, (not) => not.user)
   notification: Notification[];
+
+  @OneToMany(() => Subscription, (sub) => sub.user)
+  subscriptions: Subscription[];
 }
