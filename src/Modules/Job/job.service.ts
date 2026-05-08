@@ -65,9 +65,9 @@ export class JobServices implements OnModuleInit {
   onModuleInit() {
     this.queueEvents = new QueueEvents("create-batch-job", {
       connection: {
-        url: process.env.REDIS_URL,
-        // host: process.env.REDIS_HOST ?? "localhost",
-        // port: 6379,
+        // url: process.env.REDIS_URL,
+        host: process.env.REDIS_HOST ?? "localhost",
+        port: 6379,
       },
     });
   }

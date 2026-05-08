@@ -50,9 +50,9 @@ export class ApplicantService implements OnModuleInit {
   onModuleInit() {
     this.queueEvents = new QueueEvents("create-batch-cv", {
       connection: {
-        url: process.env.REDIS_URL
-        // host: process.env.REDIS_HOST ?? "localhost",
-        // port: 6379,
+        // url: process.env.REDIS_URL
+        host: process.env.REDIS_HOST ?? "localhost",
+        port: 6379,
       },
     });
   }

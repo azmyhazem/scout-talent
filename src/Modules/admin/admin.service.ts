@@ -4,8 +4,7 @@ import { JobServices } from "../Job/job.service";
 import { ApplicationService } from "../application/application.service";
 import { PlanService } from "../plan/plan.service";
 import { SubscriptionService } from "../subscription/subscription.service";
-import { CreatePlanDTO } from "../plan/dto/createPlan.dto";
-import { UpdatePlanDTO } from "../plan/dto/updatePlan.dto";
+import { CreatePlanDto } from "../plan/dto/createPlan.dto";
 
 @Injectable()
 export class AdminService {
@@ -230,22 +229,12 @@ export class AdminService {
     };
   }
 
-  public async createPlans(dto: CreatePlanDTO) {
+  public async createPlans(dto: CreatePlanDto) {
     await this.planService.createPlan(dto);
 
     return {
       data: {
         message: "Plan created successfully",
-      },
-    };
-  }
-
-  public async updatePlan(dto: UpdatePlanDTO, planId: string) {
-    await this.planService.updatePlan(dto, planId);
-
-    return {
-      data: {
-        message: "Plan updated successfully",
       },
     };
   }

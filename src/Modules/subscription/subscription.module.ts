@@ -6,6 +6,8 @@ import { Subscription } from "./subscription.entity";
 import { PlanModule } from "../plan/plan.module";
 import { JwtModule } from "@nestjs/jwt";
 import { UserModule } from "../Users/user.module";
+import { PaymobModule } from "src/Shared/paymob/paymob.module";
+import { PaymentModule } from "../payment/payment.module";
 
 @Module({
   providers: [SubscriptionService],
@@ -15,6 +17,8 @@ import { UserModule } from "../Users/user.module";
     PlanModule,
     JwtModule,
     UserModule,
+    PaymobModule,
+    PaymentModule
   ],
   exports: [SubscriptionService],
 })

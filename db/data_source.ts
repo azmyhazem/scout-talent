@@ -25,6 +25,12 @@ import { RecommendationBatchJob } from "src/Modules/recommend-ai-company/recomme
 import { Notification } from "src/Modules/notification/notification.entity";
 import { Plan } from "src/Modules/plan/plan.entity";
 import { Subscription } from "src/Modules/subscription/subscription.entity";
+import { PlanFeaturePermission } from "src/Modules/plan/plan-feature-permission.entity";
+import { Feature } from "src/Modules/features/feature.entity";
+import { Permission } from "src/Modules/permission/permission.entity";
+import { FeaturePermission } from "src/Modules/features/feature-permissions.entity";
+import { FeatureUsage } from "src/Modules/features/feature-usage.entity";
+import { Payment } from "src/Modules/payment/payment.entity";
 
 config({ path: ".env" });
 
@@ -58,6 +64,12 @@ export const dataSourceOptions: DataSourceOptions = {
     Notification,
     Plan,
     Subscription,
+    PlanFeaturePermission,
+    Feature,
+    Permission,
+    FeaturePermission,
+    FeatureUsage,
+    Payment
   ],
   migrations: ["dist/db/migrations/*.js"],
 };

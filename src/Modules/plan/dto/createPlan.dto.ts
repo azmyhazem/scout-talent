@@ -1,19 +1,39 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsPositive, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { PlanPermissionDto } from "./planPermission.dto";
 
-export class CreatePlanDTO {
-  @IsString()
-  @IsNotEmpty()
+export class CreatePlanDto {
   @ApiProperty()
+  @IsString()
   name: string;
 
-  @IsNumber()
-  @IsPositive()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  description?: string;
+
   @ApiProperty()
+  @IsNumber()
+  @Min(0)
   price: number;
 
-  @IsNumber()
-  @IsPositive()
   @ApiProperty()
-  durationDays: number;
+  @IsString()
+  currency: string;
+
+  @ApiProperty()
+  @IsNumber()
+  durationInDays: number;
+
+  @ApiProperty()
+  @ValidateNested({ each: true })
+  @Type(() => PlanPermissionDto)
+  permissions: PlanPermissionDto[];
 }

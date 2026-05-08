@@ -1,9 +1,15 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { Subscription } from "./subscription.entity";
-import { Repository } from "typeorm";
+import { DataSource, EntityManager, Repository } from "typeorm";
 import { PlanService } from "../plan/plan.service";
-import { PlanStatus } from "src/Shared/Enums/plan.enum";
+import { SubscriptionStatus } from "src/Shared/Enums/subscription.enum";
+import { PaymentService } from "../payment/payment.service";
+import { PaymentMethod } from "src/Shared/Enums/payment.enum";
+import { PaymobService } from "src/Shared/paymob/paymob.service";
+import { UserService } from "../Users/user.service";
+import { Plan } from "../plan/plan.entity";
+import { User } from "../Users/user.entity";
 
 @Injectable()
 export class SubscriptionService {
@@ -12,35 +18,98 @@ export class SubscriptionService {
     private subscriptionRepository: Repository<Subscription>,
 
     private planService: PlanService,
+
+    private paymentService: PaymentService,
+
+    private paymobService: PaymobService,
+
+    private userService: UserService,
+
+    @InjectDataSource()
+    private dataSource: DataSource,
   ) {}
 
   public async createSubscription(planId: string, userId: string) {
+    // 1- get plan
     const plan = await this.planService.getPlanById(planId);
 
     if (!plan) {
-      throw new BadRequestException("no plan found");
+      throw new BadRequestException("Plan not found");
     }
+
+    // 2- get user
+    const user = await this.userService.findUser(userId);
+
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
+
+    // 3- prepare dates
     const startDate = new Date();
 
     const endDate = new Date();
-    endDate.setDate(startDate.getDate() + plan.durationDays);
+    endDate.setDate(startDate.getDate() + plan.durationInDays);
 
-    const sub = this.subscriptionRepository.create({
-      plan: {
-        id: planId,
-      },
-      user: {
-        id: userId,
-      },
-      startDate,
-      endDate,
+    return this.dataSource.transaction(async (manager) => {
+      const subscription = await this.createSub(
+        plan,
+        user,
+        startDate,
+        endDate,
+        manager,
+      );
+
+      const payment = await this.paymentService.createPayment(
+        {
+          amount: plan.price,
+          currency: plan.currency,
+          method: PaymentMethod.CARD,
+        },
+        subscription,
+        manager,
+      );
+
+      const billingData = {
+        first_name: user.name,
+        last_name: "NA",
+        email: user.email,
+        phone_number: "01000000000",
+
+        apartment: "NA",
+        floor: "NA",
+        street: "NA",
+        building: "NA",
+        city: "Cairo",
+        country: "EG",
+        state: "Cairo",
+        postal_code: "12345",
+      };
+
+      const paymobPayment = await this.paymobService.initiatePayment({
+        amountCents: plan.price * 100,
+        billingData,
+      });
+
+      await this.paymentService.addOrderId(
+        payment.id,
+        paymobPayment.orderId,
+        manager,
+      );
+
+      return {
+        data: {
+          subscription,
+          paymentUrl: paymobPayment.iframeUrl,
+        },
+      };
     });
+  }
 
-    const subscription = await this.subscriptionRepository.save(sub);
-
-    return {
-      data: { subscription },
-    };
+  public async updateSubStatusActive(subId: string) {
+    return this.subscriptionRepository.update(
+      { id: subId },
+      { status: SubscriptionStatus.ACTIVE },
+    );
   }
 
   public async countSubscription() {
@@ -87,5 +156,27 @@ export class SubscriptionService {
 
   public allSubscription() {
     return this.subscriptionRepository.count();
+  }
+
+  private createSub(
+    plan: Plan,
+    user: User,
+    startDate: Date,
+    endDate: Date,
+    manager: EntityManager,
+  ) {
+    const repo = manager
+      ? manager.getRepository(Subscription)
+      : this.subscriptionRepository;
+
+    return repo.save(
+      repo.create({
+        plan,
+        user,
+        status: SubscriptionStatus.PENDING,
+        startDate,
+        endDate,
+      }),
+    );
   }
 }

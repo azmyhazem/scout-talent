@@ -23,6 +23,10 @@ import { NotificationModule } from "./Modules/notification/notification.module";
 import { AdminModule } from "./Modules/admin/admin.module";
 import { PlanModule } from "./Modules/plan/plan.module";
 import { SubscriptionModule } from "./Modules/subscription/subscription.module";
+import { FeatureModule } from "./Modules/features/feature.module";
+import { PermissionModule } from "./Modules/permission/permission.module";
+import { PaymobModule } from "./Shared/paymob/paymob.module";
+import { PaymentModule } from "./Modules/payment/payment.module";
 @Module({
   imports: [
     UserModule,
@@ -42,7 +46,11 @@ import { SubscriptionModule } from "./Modules/subscription/subscription.module";
     NotificationModule,
     AdminModule,
     PlanModule,
+    FeatureModule,
+    PermissionModule,
     SubscriptionModule,
+    PaymobModule,
+    PaymentModule,
     TypeOrmModule.forRoot(dataSourceOptions),
     ConfigModule.forRoot({
       isGlobal: true,
@@ -56,13 +64,13 @@ import { SubscriptionModule } from "./Modules/subscription/subscription.module";
       },
     ]),
     BullModule.forRoot({
-      // connection: {
-      //   host: "localhost",
-      //   port: 6379,
-      // },
       connection: {
-        url: process.env.REDIS_URL,
+        host: "localhost",
+        port: 6379,
       },
+      // connection: {
+      //   url: process.env.REDIS_URL,
+      // },
     }),
   ],
 })

@@ -12,7 +12,7 @@ export class SubscriptionController {
   constructor(private subscriptionService: SubscriptionService) {}
 
   @Post("create/:planId")
-  @Roles(RoleUser.APPLICANT, RoleUser.APPLICANT)
+  @Roles(RoleUser.APPLICANT, RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   public createSubscription(
