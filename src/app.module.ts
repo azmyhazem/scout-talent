@@ -64,13 +64,13 @@ import { PaymentModule } from "./Modules/payment/payment.module";
       },
     ]),
     BullModule.forRoot({
-      connection: {
-        host: "localhost",
-        port: 6379,
-      },
       // connection: {
-      //   url: process.env.REDIS_URL,
+      //   host: "localhost",
+      //   port: 6379,
       // },
+      connection: {
+        url: process.env.REDIS_URL,
+      },
     }),
   ],
 })
