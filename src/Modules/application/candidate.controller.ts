@@ -20,7 +20,10 @@ import { HiredDTO } from "./dto/hired.dto";
 import { InterviewDTO } from "./dto/interview.dto";
 import { JobType, WorkMode } from "src/Shared/Enums/job.enum";
 import { applyJobDTO } from "./dto/applyJob.dto";
+import { PermissionGuard } from "../permission/guard/permission.guard";
+import { RequirePermission } from "../permission/decorator/permission.decorator";
 
+@UseGuards(PermissionGuard)
 @Controller("candidate")
 export class CandidateController {
   constructor(private applicationService: ApplicationService) {}
@@ -29,6 +32,7 @@ export class CandidateController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("candidate:apply_job")
   public async applyJob(
     @currentUser() user: JwtPayloadType,
     @Param("jobId") jobId: string,
@@ -48,6 +52,7 @@ export class CandidateController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("candidate:get_company_jobs_apply")
   @ApiQuery({ name: "q", required: false, type: String })
   @ApiQuery({ name: "s", required: false, enum: CandidateStatus })
   public async GetAllJobsByCompanyApply(
@@ -67,6 +72,7 @@ export class CandidateController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("candidate:get_company_applications_by_job")
   public async getAllApplicationByJobId(
     @currentUser() company: JwtPayloadType,
     @Param("jobId") jobId: string,
@@ -83,6 +89,7 @@ export class CandidateController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission( "candidate:get_company_job_apply_by_id")
   public async GetJobByCompanyApplyById(
     @currentUser() company: JwtPayloadType,
     @Param("id") id: string,
@@ -99,6 +106,7 @@ export class CandidateController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("candidate:screen_cv")
   public async screenCV(
     @currentUser() company: JwtPayloadType,
     @Param("id") id: string,
@@ -111,6 +119,7 @@ export class CandidateController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("candidate:reject_cv")
   public async rejectedCV(
     @currentUser() company: JwtPayloadType,
     @Param("id") id: string,
@@ -124,6 +133,7 @@ export class CandidateController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("candidate:hire_cv")
   public async hiredCV(
     @currentUser() company: JwtPayloadType,
     @Param("id") id: string,
@@ -137,6 +147,7 @@ export class CandidateController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("candidate:interview_cv")
   public async interviewCV(
     @currentUser() company: JwtPayloadType,
     @Param("id") id: string,
@@ -154,6 +165,7 @@ export class CandidateController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("candidate:get_applicant_jobs_apply")
   @ApiQuery({ name: "search", required: false, type: String })
   @ApiQuery({ name: "location", required: false, type: String })
   @ApiQuery({ name: "jobType", required: false, enum: JobType })
@@ -182,6 +194,7 @@ export class CandidateController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("candidate:get_applicant_job_apply_by_id")
   public async applicantJobByApplicantByID(
     @currentUser() user: JwtPayloadType,
     @Param("id") id: string,

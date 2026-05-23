@@ -18,7 +18,10 @@ import { rescheduleDTO } from "./dto/reschedule.dto";
 import { cancelInterviewDTO } from "./dto/cancelInterview.dto";
 import { CancelBy } from "src/Shared/Enums/interviewCancel.enum";
 import { ApiSecurity } from "@nestjs/swagger";
+import { PermissionGuard } from "../permission/guard/permission.guard";
+import { RequirePermission } from "../permission/decorator/permission.decorator";
 
+@UseGuards(PermissionGuard)
 @Controller("interview")
 export class InterviewController {
   constructor(private interviewService: InterviewService) {}
@@ -27,6 +30,7 @@ export class InterviewController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("interview:get_all_by_company")
   public allInterviewWithCompany(@currentUser() user: JwtPayloadType) {
     return this.interviewService.getAllInterviewWithCompany(user.id);
   }
@@ -35,6 +39,7 @@ export class InterviewController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("interview:complete")
   public completeInterview(
     @currentUser() user: JwtPayloadType,
     @Body() body: completeInterviewDTO,
@@ -47,6 +52,7 @@ export class InterviewController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("interview:reschedule")
   public rescheduleInterview(
     @Param("interviewId") interviewId: string,
     @Body() body: rescheduleDTO,
@@ -63,6 +69,7 @@ export class InterviewController {
   @Roles(RoleUser.APPLICANT, RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("interview:cancel")
   public cancelInterview(
     @Param("interviewId") interviewId: string,
     @currentUser() user: JwtPayloadType,
@@ -84,6 +91,7 @@ export class InterviewController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("interview:get_all_by_applicant")
   public allInterviewByApplicant(@currentUser() user: JwtPayloadType) {
     return this.interviewService.getApplicantInterviews(user.id);
   }
@@ -92,6 +100,7 @@ export class InterviewController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("interview:get_stats_by_company")
   public interviewStatsWithCompany(@currentUser() user: JwtPayloadType) {
     return this.interviewService.getInterviewStatsWithCompany(user.id);
   }
@@ -100,6 +109,7 @@ export class InterviewController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("interview:get_stats_by_applicant")
   public interviewStatsWithApplicant(@currentUser() user: JwtPayloadType) {
     return this.interviewService.getInterviewStatsWithApplicant(user.id);
   }

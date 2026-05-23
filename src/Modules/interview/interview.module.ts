@@ -10,6 +10,9 @@ import { UserModule } from "../Users/user.module";
 import { JobApplicant } from "../application/job_applicant.entity";
 import { ApplicationModule } from "../application/application.module";
 import { NotificationModule } from "../notification/notification.module";
+import { PlanFeaturePermission } from "../plan/plan-feature-permission.entity";
+import { Subscription } from "../subscription/subscription.entity";
+import { FeatureUsage } from "../features/feature-usage.entity";
 
 @Module({
   providers: [InterviewService],
@@ -24,6 +27,9 @@ import { NotificationModule } from "../notification/notification.module";
       CancelInterview,
       FeedBack,
       JobApplicant,
+      Subscription,
+      PlanFeaturePermission,
+      FeatureUsage,
     ]),
   ],
 })

@@ -10,6 +10,9 @@ import { JwtModule } from "@nestjs/jwt";
 import { ApplicantModule } from "../applicant/applicant.module";
 import { QueueModule } from "src/queue/queue.module";
 import { NotificationModule } from "../notification/notification.module";
+import { Subscription } from "../subscription/subscription.entity";
+import { PlanFeaturePermission } from "../plan/plan-feature-permission.entity";
+import { FeatureUsage } from "../features/feature-usage.entity";
 
 @Module({
   controllers: [CVController],
@@ -17,8 +20,13 @@ import { NotificationModule } from "../notification/notification.module";
   imports: [
     forwardRef(() => UserModule),
     JwtModule,
-    forwardRef(()=>ApplicantModule),
-    TypeOrmModule.forFeature([CV]),
+    forwardRef(() => ApplicantModule),
+    TypeOrmModule.forFeature([
+      CV,
+      Subscription,
+      PlanFeaturePermission,
+      FeatureUsage,
+    ]),
     MulterModule.register({
       storage: diskStorage({
         destination: "./FileCV",
@@ -41,7 +49,7 @@ import { NotificationModule } from "../notification/notification.module";
         fileSize: 2 * 1024 * 1024,
       },
     }),
-    forwardRef(()=>NotificationModule),
+    forwardRef(() => NotificationModule),
     forwardRef(() => QueueModule),
   ],
   exports: [CVService],

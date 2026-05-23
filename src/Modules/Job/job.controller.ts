@@ -21,7 +21,10 @@ import { AuthGuard } from "../auth/guards/AuthUser.guard";
 import { currentUser } from "../../Shared/decorator/currentUser.decorator";
 import { jobStatusDTO } from "./dto/statusJob.dto";
 import { ApiBody, ApiSecurity } from "@nestjs/swagger";
+import { PermissionGuard } from "../permission/guard/permission.guard";
+import { RequirePermission } from "../permission/decorator/permission.decorator";
 
+@UseGuards(PermissionGuard)
 @Controller("jobs")
 export class JobController {
   constructor(private jobService: JobServices) {}
@@ -30,6 +33,7 @@ export class JobController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("job:create")
   public async CreateJob(
     @Body() body: addJobDTO,
     @currentUser() company: JwtPayloadType,
@@ -42,6 +46,7 @@ export class JobController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("job:get_recommended_candidates")
   public async getRecommendJob(
     @Param("jobId") jobId: string,
     @currentUser() company: JwtPayloadType,
@@ -60,6 +65,7 @@ export class JobController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("job:invite_candidate")
   public async invitCandidate(
     @Param("jobId") jobId: string,
     @Param("userId") userId: string,
@@ -73,6 +79,7 @@ export class JobController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("job:create")
   public async GetAllJobs() {
     const data = await this.jobService.getAllJob();
     return { data };
@@ -88,6 +95,7 @@ export class JobController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("job:delete")
   public async deleteJob(
     @currentUser() company: JwtPayloadType,
     @Param("id") id: string,
@@ -101,6 +109,7 @@ export class JobController {
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @ApiBody({ type: updateJobDTO })
+  @RequirePermission("job:update")
   public async updateJob(
     @currentUser() company: JwtPayloadType,
     @Param("id") id: string,
@@ -114,6 +123,7 @@ export class JobController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("job:change_status")
   public async jobStatusChanging(
     @currentUser() company: JwtPayloadType,
     @Param("jobId") jobId: string,

@@ -7,7 +7,10 @@ import { ApiSecurity } from "@nestjs/swagger";
 import { currentUser } from "src/Shared/decorator/currentUser.decorator";
 import type { JwtPayloadType } from "src/Shared/types/JwtPayloadType";
 import { offerRespones } from "./dto/offerRespones.dto";
+import { PermissionGuard } from "../permission/guard/permission.guard";
+import { RequirePermission } from "../permission/decorator/permission.decorator";
 
+@UseGuards(PermissionGuard)
 @Controller("offer")
 export class OfferController {
   constructor(private applicationService: ApplicationService) {}
@@ -16,6 +19,7 @@ export class OfferController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("offer:respond_to_offer")
   public async offerRespones(
     @Param("offerId") offerId: string,
     @currentUser() user: JwtPayloadType,
@@ -28,6 +32,7 @@ export class OfferController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("offer:get_all_by_applicant")
   public async allOfferByApplicant(@currentUser() user: JwtPayloadType) {
     return this.applicationService.allOfferByApplicant(user.id);
   }
@@ -36,6 +41,7 @@ export class OfferController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("offer:get_all_by_company")
   public async allOfferByCompany(@currentUser() user: JwtPayloadType) {
     const data = await this.applicationService.allOfferByCompany(user.id);
     return { data };

@@ -25,7 +25,10 @@ import type { Response } from "express";
 import { join } from "path";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
+import { PermissionGuard } from "../permission/guard/permission.guard";
+import { RequirePermission } from "../permission/decorator/permission.decorator";
 
+@UseGuards(PermissionGuard)
 @Controller("cv")
 export class CVController {
   constructor(
@@ -41,6 +44,7 @@ export class CVController {
   @ApiSecurity("bearer")
   @ApiConsumes("multipart/form-data")
   @ApiBody({ type: uploadImageDTO })
+  @RequirePermission("cv:upload")
   public async uploadCV(
     @currentUser() user: JwtPayloadType,
     @UploadedFile() file: Express.Multer.File,
@@ -73,6 +77,7 @@ export class CVController {
   @Get("isPrimary/:cvId")
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
+  @RequirePermission("cv:set_primary")
   public async selectPrimaryCV(
     @Param("cvId") cvId: string,
     @currentUser() user: JwtPayloadType,
@@ -84,6 +89,7 @@ export class CVController {
   @Get("download/:cvId")
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
+  @RequirePermission("cv:download")
   async downloadFile(@Param("cvId") cvId: string, @Res() res: Response) {
     const { url } = await this.cvService.find(cvId);
 
@@ -97,6 +103,7 @@ export class CVController {
   @Get("view/:cvId")
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
+  @RequirePermission("cv:view")
   async viewFile(@Param("cvId") cvId: string, @Res() res: Response) {
     const { url } = await this.cvService.find(cvId);
 
@@ -111,6 +118,7 @@ export class CVController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("cv:get_all")
   public async AllCV(@currentUser() user: JwtPayloadType) {
     const data = await this.cvService.getAllCVFromUser(user.id);
 
@@ -121,6 +129,7 @@ export class CVController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("cv:delete")
   public async deleteCV(
     @currentUser() user: JwtPayloadType,
     @Param("id") id: string,

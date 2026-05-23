@@ -16,7 +16,10 @@ import { Roles } from "../../Shared/decorator/user_role.decorator";
 import { AuthGuard } from "../auth/guards/AuthUser.guard";
 import { currentUser } from "../../Shared/decorator/currentUser.decorator";
 import { ApiSecurity } from "@nestjs/swagger";
+import { PermissionGuard } from "../permission/guard/permission.guard";
+import { RequirePermission } from "../permission/decorator/permission.decorator";
 
+@UseGuards(PermissionGuard)
 @Controller("applicant/me")
 export class ExperienceController {
   constructor(private experienceService: ExperienceService) {}
@@ -25,6 +28,7 @@ export class ExperienceController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("experience:add")
   public async addExperience(
     @Body() body: addExperienceDTO,
     @currentUser() user: JwtPayloadType,
@@ -37,6 +41,7 @@ export class ExperienceController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("experience:update")
   public async updateExperience(
     @Body() body: updateExperienceDTO,
     @Param("id") id: string,
@@ -49,6 +54,7 @@ export class ExperienceController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("experience:delete")
   public async deleteExperience(
     @Param("id") id: string,
     @currentUser() user: JwtPayloadType,

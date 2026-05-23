@@ -28,6 +28,11 @@ export class PlanService {
       where: { id },
     });
   }
+  public async getPlanDefault() {
+    return this.planRepository.findOne({
+      where: { isDefault: true, isActive: true },
+    });
+  }
 
   async createPlan(dto: CreatePlanDto) {
     const { name, description, price, permissions, currency, durationInDays } =

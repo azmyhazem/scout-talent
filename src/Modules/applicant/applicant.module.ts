@@ -10,6 +10,9 @@ import { CVModule } from "../CV/cv.module";
 import { RecommendAiModule } from "../recommend-ai-cv/recommend-ai-cv.module";
 import { JobModule } from "../Job/job.module";
 import { QueueModule } from "src/queue/queue.module";
+import { Subscription } from "../subscription/subscription.entity";
+import { PlanFeaturePermission } from "../plan/plan-feature-permission.entity";
+import { FeatureUsage } from "../features/feature-usage.entity";
 
 @Module({
   providers: [ApplicantService],
@@ -17,11 +20,17 @@ import { QueueModule } from "src/queue/queue.module";
   imports: [
     JwtModule,
     forwardRef(() => UserModule),
-    TypeOrmModule.forFeature([Applicant, JobApplicant]),
+    TypeOrmModule.forFeature([
+      Applicant,
+      JobApplicant,
+      Subscription,
+      PlanFeaturePermission,
+      FeatureUsage,
+    ]),
     RecommendAiModule,
     forwardRef(() => CVModule),
-    forwardRef(() =>JobModule),
-    forwardRef(()=>QueueModule)
+    forwardRef(() => JobModule),
+    forwardRef(() => QueueModule),
   ],
   exports: [ApplicantService],
 })

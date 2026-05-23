@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { Subscription } from "./subscription.entity";
 import { DataSource, EntityManager, Repository } from "typeorm";
@@ -158,12 +162,43 @@ export class SubscriptionService {
     return this.subscriptionRepository.count();
   }
 
+  async createDefaultSubscription(
+    user: User,
+    manager?: EntityManager,
+  ): Promise<Subscription> {
+    const repo = manager
+      ? manager.getRepository(Subscription)
+      : this.subscriptionRepository;
+    const defaultPlan = await this.planService.getPlanDefault();
+
+    if (!defaultPlan) {
+      throw new NotFoundException(
+        "No default plan found. Please set is_default = true on one plan.",
+      );
+    }
+
+    const startDate = new Date();
+
+    const endDate = new Date();
+    endDate.setDate(startDate.getDate() + defaultPlan.durationInDays);
+
+    const subscription = repo.create({
+      user,
+      plan: defaultPlan,
+      endDate,
+      startDate,
+      status: SubscriptionStatus.ACTIVE,
+    });
+
+    return repo.save(subscription);
+  }
+
   private createSub(
     plan: Plan,
     user: User,
     startDate: Date,
     endDate: Date,
-    manager: EntityManager,
+    manager?: EntityManager,
   ) {
     const repo = manager
       ? manager.getRepository(Subscription)

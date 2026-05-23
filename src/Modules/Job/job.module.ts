@@ -13,13 +13,21 @@ import { CVModule } from "../CV/cv.module";
 import { ApplicantModule } from "../applicant/applicant.module";
 import { ApplicationModule } from "../application/application.module";
 import { NotificationModule } from "../notification/notification.module";
+import { Subscription } from "../subscription/subscription.entity";
+import { PlanFeaturePermission } from "../plan/plan-feature-permission.entity";
+import { FeatureUsage } from "../features/feature-usage.entity";
 
 @Module({
   imports: [
     forwardRef(() => UserModule),
     forwardRef(() => CompanyModule),
     JwtModule,
-    TypeOrmModule.forFeature([Job]),
+    TypeOrmModule.forFeature([
+      Job,
+      Subscription,
+      PlanFeaturePermission,
+      FeatureUsage,
+    ]),
     QueueModule,
     IndustryModule,
     RecommendAiJobModule,

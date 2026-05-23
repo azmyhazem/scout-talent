@@ -14,7 +14,10 @@ import { Roles } from "../../Shared/decorator/user_role.decorator";
 import { AuthGuard } from "../auth/guards/AuthUser.guard";
 import { currentUser } from "../../Shared/decorator/currentUser.decorator";
 import { ApiSecurity } from "@nestjs/swagger";
+import { PermissionGuard } from "../permission/guard/permission.guard";
+import { RequirePermission } from "../permission/decorator/permission.decorator";
 
+@UseGuards(PermissionGuard)
 @Controller("applicant/me")
 export class SkillController {
   constructor(private skillService: SkillService) {}
@@ -23,6 +26,7 @@ export class SkillController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("skill:add")
   public async addSkill(
     @currentUser() user: JwtPayloadType,
     @Body() body: addSkillDTO,
@@ -35,6 +39,7 @@ export class SkillController {
   @Roles(RoleUser.APPLICANT)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("skill:delete")
   public async deleteSkill(
     @currentUser() user: JwtPayloadType,
     @Param("id") id: string,

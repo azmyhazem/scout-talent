@@ -6,6 +6,9 @@ import { SpecializationController } from "./specialization.controller";
 import { CompanyModule } from "../company/company.module";
 import { JwtModule } from "@nestjs/jwt";
 import { UserModule } from "../Users/user.module";
+import { Subscription } from "../subscription/subscription.entity";
+import { PlanFeaturePermission } from "../plan/plan-feature-permission.entity";
+import { FeatureUsage } from "../features/feature-usage.entity";
 
 @Module({
   providers: [SpecializationService],
@@ -14,7 +17,12 @@ import { UserModule } from "../Users/user.module";
     JwtModule,
     UserModule,
     CompanyModule,
-    TypeOrmModule.forFeature([Specialization]),
+    TypeOrmModule.forFeature([
+      Specialization,
+      Subscription,
+      PlanFeaturePermission,
+      FeatureUsage,
+    ]),
   ],
 })
 export class SpecializationModule {}

@@ -7,6 +7,9 @@ import { UserModule } from "../Users/user.module";
 import { JobModule } from "../Job/job.module";
 import { CompanyController } from "./company.controller";
 import { JwtModule } from "@nestjs/jwt";
+import { Subscription } from "../subscription/subscription.entity";
+import { PlanFeaturePermission } from "../plan/plan-feature-permission.entity";
+import { FeatureUsage } from "../features/feature-usage.entity";
 
 @Module({
   controllers: [CompanyController],
@@ -17,7 +20,13 @@ import { JwtModule } from "@nestjs/jwt";
     forwardRef(() => UserModule),
     forwardRef(() => JobModule),
     JwtModule,
-    TypeOrmModule.forFeature([Company, JobApplicant]),
+    TypeOrmModule.forFeature([
+      Company,
+      JobApplicant,
+      Subscription,
+      PlanFeaturePermission,
+      FeatureUsage,
+    ]),
   ],
 })
 export class CompanyModule {}

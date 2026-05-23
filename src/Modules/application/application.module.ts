@@ -16,17 +16,20 @@ import { ApplicantModule } from "../applicant/applicant.module";
 import { QueueModule } from "src/queue/queue.module";
 import { NotificationModule } from "../notification/notification.module";
 import { HiredDetails } from "./Hired_Details.entity";
+import { Subscription } from "../subscription/subscription.entity";
+import { PlanFeaturePermission } from "../plan/plan-feature-permission.entity";
+import { FeatureUsage } from "../features/feature-usage.entity";
 
 @Module({
-  controllers: [CandidateController ,OfferController],
-  providers: [ApplicationService ],
+  controllers: [CandidateController, OfferController],
+  providers: [ApplicationService],
 
   imports: [
     JwtModule,
     forwardRef(() => UserModule),
-    forwardRef(()=>JobModule),
+    forwardRef(() => JobModule),
     CVModule,
-    forwardRef(()=>ApplicantModule),
+    forwardRef(() => ApplicantModule),
     NotificationModule,
     TypeOrmModule.forFeature([
       JobApplicant,
@@ -34,9 +37,12 @@ import { HiredDetails } from "./Hired_Details.entity";
       JobOffer,
       Reject,
       Interview,
-      HiredDetails
+      HiredDetails,
+      Subscription,
+      PlanFeaturePermission,
+      FeatureUsage,
     ]),
-    forwardRef(()=>QueueModule)
+    forwardRef(() => QueueModule),
   ],
   exports: [ApplicationService],
 })

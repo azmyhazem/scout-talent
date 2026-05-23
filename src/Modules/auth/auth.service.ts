@@ -30,6 +30,7 @@ import { UserService } from "../Users/user.service";
 import { ApplicantService } from "../applicant/applicant.service";
 import { CompanyService } from "../company/company.service";
 import { IndustryRepository } from "../industry/industry.repository";
+import { SubscriptionService } from "../subscription/subscription.service";
 
 @Injectable()
 export class AuthService {
@@ -47,6 +48,7 @@ export class AuthService {
     private applicantService: ApplicantService,
     private companyService: CompanyService,
     private industryRepo: IndustryRepository,
+    private subscriptionService: SubscriptionService,
   ) {}
 
   /**
@@ -87,6 +89,7 @@ export class AuthService {
         manager,
       );
 
+      await this.subscriptionService.createDefaultSubscription(user, manager);
       if (role === RoleUser.APPLICANT && applicant) {
         const { phone, industry, job_title } = applicant;
 

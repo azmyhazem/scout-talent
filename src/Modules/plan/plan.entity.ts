@@ -20,6 +20,9 @@ export class Plan {
   @Column({ type: "text", nullable: true })
   description: string;
 
+  @Column({ type: "boolean", default: false })
+  isDefault: boolean;
+
   @Column({ type: "decimal", precision: 10, scale: 2 })
   price: number;
 

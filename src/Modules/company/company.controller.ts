@@ -20,7 +20,10 @@ import { updateoraddAboutDTO } from "./dto/about.dto";
 import { JobStatus, JobType, WorkMode } from "src/Shared/Enums/job.enum";
 import type { Response } from "express";
 import { AuthGuard } from "../auth/guards/AuthUser.guard";
+import { PermissionGuard } from "../permission/guard/permission.guard";
+import { RequirePermission } from "../permission/decorator/permission.decorator";
 
+@UseGuards(PermissionGuard)
 @Controller("company/me")
 export class CompanyController {
   constructor(private companyService: CompanyService) {}
@@ -29,6 +32,7 @@ export class CompanyController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("company:get_profile")
   public async getProfile(@currentUser() user: JwtPayloadType) {
     const me = await this.companyService.findCompanywithDetails(user.id);
 
@@ -39,6 +43,7 @@ export class CompanyController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("company:get_shared_profile")
   public async sharedProfile(@currentUser() payload: JwtPayloadType) {
     return this.companyService.shareLink(payload.id);
   }
@@ -47,6 +52,7 @@ export class CompanyController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("company:get_basic_info")
   public async GetBasicInfo(@currentUser() payload: JwtPayloadType) {
     const company = await this.companyService.basicInformation(payload.id);
     return {
@@ -58,6 +64,7 @@ export class CompanyController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("company:update_basic_info")
   public async updateBasicInfo(
     @currentUser() payload: JwtPayloadType,
     @Body() body: updateCompanyDTO,
@@ -73,6 +80,7 @@ export class CompanyController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("company:add_or_update_about")
   public async AboutCompany(
     @currentUser() company: JwtPayloadType,
     @Body() body: updateoraddAboutDTO,
@@ -88,6 +96,7 @@ export class CompanyController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("company:get_profile_completion")
   public async profileCompleteCompany(@currentUser() company: JwtPayloadType) {
     const data = await this.companyService.profileCompleteCompany(company.id);
     return {
@@ -99,6 +108,7 @@ export class CompanyController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("company:get_dashboard_stats")
   public async dashboardStatistics(@currentUser() company: JwtPayloadType) {
     const data = await this.companyService.dashboardStatisticsCompany(
       company.id,
@@ -113,6 +123,7 @@ export class CompanyController {
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @ApiQuery({ name: "q", required: false, enum: JobStatus })
+  @RequirePermission("company:get_jobs")
   public async GetAllJobsByCompany(
     @currentUser() company: JwtPayloadType,
     @Query("q") q?: JobStatus,
@@ -132,6 +143,7 @@ export class CompanyController {
   @Roles(RoleUser.COMPANY)
   @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
+  @RequirePermission("company:delete_account")
   public async deleteAccount(
     @currentUser() user: JwtPayloadType,
     @Res({ passthrough: true }) res: Response,
