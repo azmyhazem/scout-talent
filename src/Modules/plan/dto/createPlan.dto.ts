@@ -32,7 +32,9 @@ export class CreatePlanDto {
   @IsNumber()
   durationInDays: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    type: [PlanPermissionDto],
+  })
   @ValidateNested({ each: true })
   @Type(() => PlanPermissionDto)
   permissions: PlanPermissionDto[];
