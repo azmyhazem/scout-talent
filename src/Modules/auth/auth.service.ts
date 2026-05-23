@@ -89,7 +89,7 @@ export class AuthService {
         manager,
       );
 
-      // await this.subscriptionService.createDefaultSubscription(user, manager);
+      await this.subscriptionService.createDefaultSubscription(user, manager);
 
       if (role === RoleUser.APPLICANT && applicant) {
         const { phone, industry, job_title } = applicant;
