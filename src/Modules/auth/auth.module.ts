@@ -15,6 +15,7 @@ import { ApplicantModule } from "../applicant/applicant.module";
 import { CompanyModule } from "../company/company.module";
 import { RefreshTokenStrategy } from "./strategies/refreshToken.strategy";
 import { IndustryModule } from "../industry/industry.module";
+import { SubscriptionModule } from "../subscription/subscription.module";
 
 @Module({
   controllers: [AuthController],
@@ -39,6 +40,7 @@ import { IndustryModule } from "../industry/industry.module";
     IndustryModule,
     ApplicantModule,
     CompanyModule,
+    SubscriptionModule,
     TypeOrmModule.forFeature([User, UserToken, Outbox]),
   ],
 })
