@@ -10,14 +10,13 @@ import { offerRespones } from "./dto/offerRespones.dto";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(PermissionGuard)
+@UseGuards(AuthGuard,PermissionGuard)
 @Controller("offer")
 export class OfferController {
   constructor(private applicationService: ApplicationService) {}
 
   @Patch("response/:offerId")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("offer:respond_to_offer")
   public async offerRespones(
@@ -30,7 +29,6 @@ export class OfferController {
 
   @Get("all/applicant")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("offer:get_all_by_applicant")
   public async allOfferByApplicant(@currentUser() user: JwtPayloadType) {
@@ -39,7 +37,6 @@ export class OfferController {
 
   @Get("all/company")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("offer:get_all_by_company")
   public async allOfferByCompany(@currentUser() user: JwtPayloadType) {

@@ -23,14 +23,13 @@ import { AuthGuard } from "../auth/guards/AuthUser.guard";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(PermissionGuard)
+@UseGuards(AuthGuard, PermissionGuard)
 @Controller("company/me")
 export class CompanyController {
   constructor(private companyService: CompanyService) {}
 
   @Get("")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("company:get_profile")
   public async getProfile(@currentUser() user: JwtPayloadType) {
@@ -41,7 +40,6 @@ export class CompanyController {
 
   @Get("shared/profile")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("company:get_shared_profile")
   public async sharedProfile(@currentUser() payload: JwtPayloadType) {
@@ -50,7 +48,6 @@ export class CompanyController {
 
   @Get("basic_info")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("company:get_basic_info")
   public async GetBasicInfo(@currentUser() payload: JwtPayloadType) {
@@ -62,7 +59,6 @@ export class CompanyController {
 
   @Patch("basic_info")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("company:update_basic_info")
   public async updateBasicInfo(
@@ -78,7 +74,6 @@ export class CompanyController {
 
   @Post("about")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("company:add_or_update_about")
   public async AboutCompany(
@@ -94,7 +89,6 @@ export class CompanyController {
 
   @Get("completion")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("company:get_profile_completion")
   public async profileCompleteCompany(@currentUser() company: JwtPayloadType) {
@@ -106,7 +100,6 @@ export class CompanyController {
 
   @Get("dashboard-stats")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("company:get_dashboard_stats")
   public async dashboardStatistics(@currentUser() company: JwtPayloadType) {
@@ -120,7 +113,6 @@ export class CompanyController {
 
   @Get("jobs")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @ApiQuery({ name: "q", required: false, enum: JobStatus })
   @RequirePermission("company:get_jobs")
@@ -141,7 +133,6 @@ export class CompanyController {
 
   @Delete("detele")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("company:delete_account")
   public async deleteAccount(

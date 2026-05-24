@@ -1,24 +1,20 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
-  Column,
   CreateDateColumn,
   ManyToOne,
   OneToMany,
-  JoinColumn,
 } from 'typeorm';
 import { Feature } from './feature.entity';
 import { Permission } from '../permission/permission.entity';
 import { PlanFeaturePermission } from '../plan/plan-feature-permission.entity';
-import { FeatureUsage } from './feature-usage.entity';
-
 
 @Entity('feature_permissions')
 export class FeaturePermission {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
 
   @ManyToOne(() => Feature, (feature) => feature.featurePermissions, {
@@ -34,6 +30,4 @@ export class FeaturePermission {
   @OneToMany(() => PlanFeaturePermission, (pfp) => pfp.featurePermission)
   planFeaturePermissions: PlanFeaturePermission[];
 
-  @OneToMany(() => FeatureUsage, (fu) => fu.featurePermission)
-  featureUsages: FeatureUsage[];
 }

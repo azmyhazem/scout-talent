@@ -17,14 +17,13 @@ import { ApiSecurity } from "@nestjs/swagger";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(PermissionGuard)
+@UseGuards(AuthGuard,PermissionGuard)
 @Controller("applicant/me")
 export class SkillController {
   constructor(private skillService: SkillService) {}
 
   @Post("skills")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("skill:add")
   public async addSkill(
@@ -37,7 +36,6 @@ export class SkillController {
 
   @Delete("skills/:id")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("skill:delete")
   public async deleteSkill(

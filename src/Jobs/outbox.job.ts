@@ -19,19 +19,19 @@ export class OutboxService {
 
   @Cron(CronExpression.EVERY_5_SECONDS)
   async processOutbox() {
-    const now = new Date();
 
     await this.outboxRepository.update(
       {
         status: STATUS.PENDING,
-        nextRetryAt: LessThanOrEqual(now),
+        nextRetryAt: LessThanOrEqual(new Date(Date.now() + 1000 * 60 * 2)),
       },
       {
         status: STATUS.PROCESSING,
       },
     );
+
     const messages = await this.outboxRepository.find({
-      where: { status: STATUS.PROCESSING, nextRetryAt: LessThanOrEqual(now) },
+      where: { status: STATUS.PROCESSING, nextRetryAt: LessThanOrEqual(new Date(Date.now() + 1000 * 60 * 2)) },
       take: 10,
       order: { created_at: "asc" },
     });
@@ -39,6 +39,7 @@ export class OutboxService {
     for (const msg of messages) {
       const { email, token } = msg.payload;
 
+      console.log(msg)
       try {
         switch (msg.event_type) {
           case EVENT_TYPE.SEND_VERIFICATION_EMAIL: {

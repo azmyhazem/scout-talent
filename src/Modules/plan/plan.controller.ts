@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import { PlanService } from "./plan.service";
 import { CreatePlanDto } from "./dto/createPlan.dto";
 import { Roles } from "src/Shared/decorator/user_role.decorator";
@@ -24,5 +32,13 @@ export class PlanController {
   @ApiSecurity("bearer")
   createPlan(@Body() body: CreatePlanDto) {
     return this.planService.createPlan(body);
+  }
+
+  @Patch(":id/default")
+  @Roles(RoleUser.ADMIN)
+  @UseGuards(AuthGuard)
+  @ApiSecurity("bearer")
+  async defaultPlan(@Param("id") id: string) {
+    return await this.planService.defaultPlan(id);
   }
 }

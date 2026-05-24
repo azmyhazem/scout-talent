@@ -13,6 +13,7 @@ import { QueueModule } from "src/queue/queue.module";
 import { Subscription } from "../subscription/subscription.entity";
 import { PlanFeaturePermission } from "../plan/plan-feature-permission.entity";
 import { FeatureUsage } from "../features/feature-usage.entity";
+import { FeatureModule } from "../features/feature.module";
 
 @Module({
   providers: [ApplicantService],
@@ -28,6 +29,7 @@ import { FeatureUsage } from "../features/feature-usage.entity";
       FeatureUsage,
     ]),
     RecommendAiModule,
+    FeatureModule,
     forwardRef(() => CVModule),
     forwardRef(() => JobModule),
     forwardRef(() => QueueModule),

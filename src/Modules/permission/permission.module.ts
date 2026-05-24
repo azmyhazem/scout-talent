@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { PermissionService } from "./permission.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Permission } from "./permission.entity";
@@ -19,7 +19,7 @@ import { FeatureUsage } from "../features/feature-usage.entity";
       PlanFeaturePermission,
       FeatureUsage,
     ]),
-    UserModule,
+    forwardRef(()=>UserModule) ,
     JwtModule,
   ],
   exports: [PermissionService],

@@ -17,14 +17,13 @@ import { SpecializationService } from "./specialization.service";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(PermissionGuard)
+@UseGuards(AuthGuard,PermissionGuard)
 @Controller("companys/me")
 export class SpecializationController {
   constructor(private specializationService: SpecializationService) {}
 
   @Post("specializations")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("specialization:add")
   public async addSpecializations(
@@ -40,7 +39,6 @@ export class SpecializationController {
 
   @Delete("specializations/:id")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("specialization:delete")
   public async deletespecializations(

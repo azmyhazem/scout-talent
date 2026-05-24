@@ -23,14 +23,13 @@ import { applyJobDTO } from "./dto/applyJob.dto";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(PermissionGuard)
+@UseGuards(AuthGuard,PermissionGuard)
 @Controller("candidate")
 export class CandidateController {
   constructor(private applicationService: ApplicationService) {}
 
   @Post("applyJob/:jobId/:cvId")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("candidate:apply_job")
   public async applyJob(
@@ -50,7 +49,6 @@ export class CandidateController {
 
   @Get("company/jobsApply")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("candidate:get_company_jobs_apply")
   @ApiQuery({ name: "q", required: false, type: String })
@@ -70,7 +68,6 @@ export class CandidateController {
 
   @Get("company/applicantion/:jobId")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("candidate:get_company_applications_by_job")
   public async getAllApplicationByJobId(
@@ -87,7 +84,6 @@ export class CandidateController {
 
   @Get("company/jobsApply/:id")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission( "candidate:get_company_job_apply_by_id")
   public async GetJobByCompanyApplyById(
@@ -104,7 +100,6 @@ export class CandidateController {
 
   @Get("screening/:id")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("candidate:screen_cv")
   public async screenCV(
@@ -117,7 +112,6 @@ export class CandidateController {
 
   @Post("reject/:id")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("candidate:reject_cv")
   public async rejectedCV(
@@ -131,7 +125,6 @@ export class CandidateController {
 
   @Post("hire/:id")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("candidate:hire_cv")
   public async hiredCV(
@@ -145,7 +138,6 @@ export class CandidateController {
 
   @Post("interview/:id")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("candidate:interview_cv")
   public async interviewCV(
@@ -163,7 +155,6 @@ export class CandidateController {
 
   @Get("applicant/jobsApply")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("candidate:get_applicant_jobs_apply")
   @ApiQuery({ name: "search", required: false, type: String })
@@ -192,7 +183,6 @@ export class CandidateController {
 
   @Get("applicant/jobsApply/:id")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("candidate:get_applicant_job_apply_by_id")
   public async applicantJobByApplicantByID(

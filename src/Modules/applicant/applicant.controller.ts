@@ -22,14 +22,13 @@ import type { Response } from "express";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(PermissionGuard)
+@UseGuards(AuthGuard,PermissionGuard)
 @Controller("applicant")
 export class ApplicantController {
   constructor(private applicantService: ApplicantService) {}
 
   @Get("")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("applicant:get_profile")
   public async GetProfile(@currentUser() payload: JwtPayloadType) {
@@ -43,7 +42,6 @@ export class ApplicantController {
 
   @Get("basic_info")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("applicant:get_basic_info")
   public async GetBasicInfo(@currentUser() payload: JwtPayloadType) {
@@ -55,7 +53,6 @@ export class ApplicantController {
 
   @Get("recommend/job")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("applicant:get_recommended_jobs")
   public async recommendJob(
@@ -73,7 +70,6 @@ export class ApplicantController {
 
   @Get("shared/profile")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("applicant:get_shared_profile")
   public async sharedProfile(@currentUser() payload: JwtPayloadType) {
@@ -82,7 +78,6 @@ export class ApplicantController {
 
   @Patch("basic_info")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("applicant:update_basic_info")
   public async updateBasicInfo(
@@ -97,7 +92,6 @@ export class ApplicantController {
 
   @Get("completion")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("applicant:get_profile_completion")
   public async profileCompleteUser(@currentUser() user: JwtPayloadType) {
@@ -109,7 +103,6 @@ export class ApplicantController {
 
   @Get("dashboard-stats")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("applicant:get_dashboard_stats")
   public async dashboardStatistics(@currentUser() user: JwtPayloadType) {
@@ -119,7 +112,6 @@ export class ApplicantController {
 
   @Delete("detele")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("applicant:delete_account")
   public async deleteAccount(

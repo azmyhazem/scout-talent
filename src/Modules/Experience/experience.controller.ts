@@ -19,14 +19,13 @@ import { ApiSecurity } from "@nestjs/swagger";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(PermissionGuard)
+@UseGuards(AuthGuard,PermissionGuard)
 @Controller("applicant/me")
 export class ExperienceController {
   constructor(private experienceService: ExperienceService) {}
 
   @Post("experiences")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("experience:add")
   public async addExperience(
@@ -39,7 +38,6 @@ export class ExperienceController {
 
   @Put("experiences/:id")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("experience:update")
   public async updateExperience(
@@ -52,7 +50,6 @@ export class ExperienceController {
 
   @Delete("experiences/:id")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("experience:delete")
   public async deleteExperience(

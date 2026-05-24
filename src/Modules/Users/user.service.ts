@@ -148,6 +148,26 @@ export class UserService {
     });
   }
 
+  async getUserWithSubscription(id: string) {
+    return this.userRepository.findOne({
+      where: {
+        id,
+      },
+      relations: {
+        subscriptions: {
+          plan: {
+            planFeaturePermissions: {
+              featurePermission: {
+                feature: true,
+                permission: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async getSignUpTodayCount() {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);

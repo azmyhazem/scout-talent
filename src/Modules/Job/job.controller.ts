@@ -24,14 +24,13 @@ import { ApiBody, ApiSecurity } from "@nestjs/swagger";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(PermissionGuard)
+@UseGuards(AuthGuard,PermissionGuard)
 @Controller("jobs")
 export class JobController {
   constructor(private jobService: JobServices) {}
 
   @Post("createJob")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("job:create")
   public async CreateJob(
@@ -44,7 +43,6 @@ export class JobController {
 
   @Get("recommend/candidate/:jobId")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("job:get_recommended_candidates")
   public async getRecommendJob(
@@ -63,7 +61,6 @@ export class JobController {
 
   @Get("candidate/invit/:jobId/:userId/:recommendId")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("job:invite_candidate")
   public async invitCandidate(
@@ -77,7 +74,6 @@ export class JobController {
 
   @Get("allJob")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("job:create")
   public async GetAllJobs() {
@@ -93,7 +89,6 @@ export class JobController {
 
   @Delete("/:id")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("job:delete")
   public async deleteJob(
@@ -106,7 +101,6 @@ export class JobController {
 
   @Put("/:id")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @ApiBody({ type: updateJobDTO })
   @RequirePermission("job:update")
@@ -121,7 +115,6 @@ export class JobController {
 
   @Post("/:jobId/status")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("job:change_status")
   public async jobStatusChanging(

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Plan } from "./plan.entity";
 import { Repository } from "typeorm";
@@ -28,10 +32,43 @@ export class PlanService {
       where: { id },
     });
   }
+
   public async getPlanDefault() {
     return this.planRepository.findOne({
       where: { isDefault: true, isActive: true },
     });
+  }
+
+  public async defaultPlan(planId: string) {
+    const plan = await this.getPlanById(planId);
+
+    if (!plan) {
+      throw new BadRequestException("plan not found");
+    }
+
+    if (plan.isDefault) {
+      throw new BadRequestException("this plan is already default");
+    }
+
+    const currentDefaultPlan = await this.planRepository.findOne({
+      where: {
+        isDefault: true,
+        isActive: true,
+      },
+    });
+
+    if (currentDefaultPlan) {
+      currentDefaultPlan.isDefault = false;
+      await this.planRepository.save(currentDefaultPlan);
+    }
+
+    plan.isDefault = true;
+
+    await this.planRepository.save(plan);
+
+    return {
+      message: "default plan updated successfully",
+    };
   }
 
   async createPlan(dto: CreatePlanDto) {

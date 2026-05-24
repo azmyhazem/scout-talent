@@ -21,14 +21,13 @@ import { ApiSecurity } from "@nestjs/swagger";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(PermissionGuard)
+@UseGuards(AuthGuard,PermissionGuard)
 @Controller("interview")
 export class InterviewController {
   constructor(private interviewService: InterviewService) {}
 
   @Get("company")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("interview:get_all_by_company")
   public allInterviewWithCompany(@currentUser() user: JwtPayloadType) {
@@ -37,7 +36,6 @@ export class InterviewController {
 
   @Post("complete/:interviewId")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("interview:complete")
   public completeInterview(
@@ -50,7 +48,6 @@ export class InterviewController {
 
   @Patch("reschedule/:interviewId")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("interview:reschedule")
   public rescheduleInterview(
@@ -67,7 +64,6 @@ export class InterviewController {
 
   @Post("cancel/:interviewId")
   @Roles(RoleUser.APPLICANT, RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("interview:cancel")
   public cancelInterview(
@@ -89,7 +85,6 @@ export class InterviewController {
 
   @Get("applicant")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("interview:get_all_by_applicant")
   public allInterviewByApplicant(@currentUser() user: JwtPayloadType) {
@@ -98,7 +93,6 @@ export class InterviewController {
 
   @Get("company/stats")
   @Roles(RoleUser.COMPANY)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("interview:get_stats_by_company")
   public interviewStatsWithCompany(@currentUser() user: JwtPayloadType) {
@@ -107,7 +101,6 @@ export class InterviewController {
 
   @Get("applicant/stats")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("interview:get_stats_by_applicant")
   public interviewStatsWithApplicant(@currentUser() user: JwtPayloadType) {

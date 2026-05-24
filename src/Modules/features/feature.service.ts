@@ -6,6 +6,8 @@ import { CreateFeatureDto } from "./dto/create-feature.dto";
 import { Permission } from "../permission/permission.entity";
 import { FeaturePermission } from "./feature-permissions.entity";
 import { PermissionService } from "../permission/permission.service";
+import { FeatureUsage } from "./feature-usage.entity";
+import { startOfMonth, endOfMonth } from "date-fns";
 
 @Injectable()
 export class FeatureService {
@@ -16,8 +18,39 @@ export class FeatureService {
     @InjectRepository(FeaturePermission)
     private featurePermissionRepository: Repository<FeaturePermission>,
 
+    @InjectRepository(FeatureUsage)
+    private featureUsageRepository: Repository<FeatureUsage>,
+
     private permissionService: PermissionService,
   ) {}
+
+  // feature-usage.service.ts
+  async increment(subscriptionId: string, planFeaturePermissionId: string) {
+    const existing = await this.featureUsageRepository.findOne({
+      where: {
+        subscription: {
+          id: subscriptionId,
+        },
+        planFeaturePermission: {
+          id: planFeaturePermissionId,
+        },
+      },
+    });
+
+    if (!existing) {
+      return this.featureUsageRepository.save(
+        this.featureUsageRepository.create({
+          usedCount: 1,
+          periodStart: startOfMonth(new Date()),
+          periodEnd: endOfMonth(new Date()),
+        }),
+      );
+    }
+
+    existing.usedCount += 1;
+    existing.lastUsedAt = new Date();
+    return this.featureUsageRepository.save(existing);
+  }
 
   async createFeature(dto: CreateFeatureDto) {
     const { name, description, permissionsId } = dto;

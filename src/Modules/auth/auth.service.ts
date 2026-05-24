@@ -186,11 +186,7 @@ export class AuthService {
       message: "login successful",
       accessToken,
       refreshToken,
-      u: {
-        id: user.id,
-        name: user.name,
-        role: user.role,
-      },
+      user: await this.userService.getUserWithSubscription(user.id),
     };
   }
 
@@ -428,6 +424,8 @@ export class AuthService {
         role: RoleUser.APPLICANT,
         slug: this.generateSlug(name),
       });
+
+      await this.subscriptionService.createDefaultSubscription(user);
 
       return {
         needRole: true,

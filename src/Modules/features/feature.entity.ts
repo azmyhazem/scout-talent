@@ -19,10 +19,10 @@ export class Feature {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date;
 
   @OneToMany(

@@ -20,6 +20,7 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { CV } from "../CV/cv.entity";
 import { StatusAI } from "src/Shared/Enums/statusAI.enum";
 import { RecommendationBatchCV } from "../recommend-ai-cv/recommendation-batch-cv.entity";
+import { FeatureService } from "../features/feature.service";
 
 @Injectable()
 export class ApplicantService implements OnModuleInit {
@@ -45,6 +46,8 @@ export class ApplicantService implements OnModuleInit {
 
     @InjectQueue("create-batch-cv")
     private create_batch_cv: Queue,
+
+    private featureUsage:FeatureService
   ) {}
 
   onModuleInit() {

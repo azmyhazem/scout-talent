@@ -56,7 +56,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Body() body: loginDTO,
   ) {
-    const { message, accessToken, refreshToken, u } =
+    const { message, accessToken, refreshToken, user } =
       await this.authService.login(body);
 
     let maxAge = 0;
@@ -74,7 +74,7 @@ export class AuthController {
     });
 
     return {
-      data: { message, accessToken, user: u },
+      data: { message, accessToken, user },
     };
   }
 

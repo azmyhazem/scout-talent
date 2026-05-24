@@ -7,30 +7,29 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { Subscription } from '../subscription/subscription.entity';
-import { FeaturePermission } from './feature-permissions.entity';
-
+import { PlanFeaturePermission } from '../plan/plan-feature-permission.entity';
 
 @Entity('feature_usage')
 export class FeatureUsage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'used_count', type: 'bigint', default: 0 })
+  @Column({ type: 'bigint', default: 0 })
   usedCount: number;
 
-  @Column({ name: 'period_start', type: 'date' })
+  @Column({ type: 'date' })
   periodStart: Date;
 
-  @Column({ name: 'period_end', type: 'date' })
+  @Column({ type: 'date' })
   periodEnd: Date;
 
-  @Column({ name: 'last_used_at', type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   lastUsedAt: Date | null;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date;
 
   // Relations
@@ -40,9 +39,9 @@ export class FeatureUsage {
   subscription: Subscription;
 
   @ManyToOne(
-    () => FeaturePermission,
+    () => PlanFeaturePermission,
     (fp) => fp.featureUsages,
     { onDelete: 'CASCADE' },
   )
-  featurePermission: FeaturePermission;
+  planFeaturePermission: PlanFeaturePermission;
 }

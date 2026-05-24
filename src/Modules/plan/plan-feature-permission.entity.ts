@@ -4,32 +4,34 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
-  JoinColumn,
-} from 'typeorm';
-import { Plan } from './plan.entity';
-import { FeaturePermission } from '../features/feature-permissions.entity';
+  OneToMany,
+} from "typeorm";
+import { Plan } from "./plan.entity";
+import { FeaturePermission } from "../features/feature-permissions.entity";
+import { FeatureUsage } from "../features/feature-usage.entity";
 
-@Entity('plan_feature_permissions')
+@Entity("plan_feature_permissions")
 export class PlanFeaturePermission {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ name: 'limit_count', type: 'integer', nullable: true })
+  @Column({ type: "integer", nullable: true })
   limitCount: number | null;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
 
   // Relations
   @ManyToOne(() => Plan, (plan) => plan.planFeaturePermissions, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
   plan: Plan;
 
-  @ManyToOne(
-    () => FeaturePermission,
-    (fp) => fp.planFeaturePermissions,
-    { onDelete: 'CASCADE' },
-  )
+  @ManyToOne(() => FeaturePermission, (fp) => fp.planFeaturePermissions, {
+    onDelete: "CASCADE",
+  })
   featurePermission: FeaturePermission;
+
+  @OneToMany(() => FeatureUsage, (fu) => fu.planFeaturePermission)
+  featureUsages: FeatureUsage[];
 }

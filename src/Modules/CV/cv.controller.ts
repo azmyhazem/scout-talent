@@ -28,7 +28,7 @@ import { Queue } from "bullmq";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(PermissionGuard)
+@UseGuards(AuthGuard, PermissionGuard)
 @Controller("cv")
 export class CVController {
   constructor(
@@ -39,7 +39,6 @@ export class CVController {
 
   @Post("/upload-cv")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor("cv"))
   @ApiSecurity("bearer")
   @ApiConsumes("multipart/form-data")
@@ -76,7 +75,6 @@ export class CVController {
 
   @Get("isPrimary/:cvId")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @RequirePermission("cv:set_primary")
   public async selectPrimaryCV(
     @Param("cvId") cvId: string,
@@ -88,7 +86,6 @@ export class CVController {
 
   @Get("download/:cvId")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @RequirePermission("cv:download")
   async downloadFile(@Param("cvId") cvId: string, @Res() res: Response) {
     const { url } = await this.cvService.find(cvId);
@@ -102,7 +99,6 @@ export class CVController {
 
   @Get("view/:cvId")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @RequirePermission("cv:view")
   async viewFile(@Param("cvId") cvId: string, @Res() res: Response) {
     const { url } = await this.cvService.find(cvId);
@@ -116,7 +112,6 @@ export class CVController {
 
   @Get("/getAll")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("cv:get_all")
   public async AllCV(@currentUser() user: JwtPayloadType) {
@@ -127,7 +122,6 @@ export class CVController {
 
   @Delete("/delete/:id")
   @Roles(RoleUser.APPLICANT)
-  @UseGuards(AuthGuard)
   @ApiSecurity("bearer")
   @RequirePermission("cv:delete")
   public async deleteCV(
