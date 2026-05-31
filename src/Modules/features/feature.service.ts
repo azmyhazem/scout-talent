@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { In, Repository } from "typeorm";
 import { Feature } from "./feature.entity";
@@ -8,6 +8,7 @@ import { FeaturePermission } from "./feature-permissions.entity";
 import { PermissionService } from "../permission/permission.service";
 import { FeatureUsage } from "./feature-usage.entity";
 import { startOfMonth, endOfMonth } from "date-fns";
+import { UpdateFeatureDto } from "./dto/update-feature.dto";
 
 @Injectable()
 export class FeatureService {
@@ -43,6 +44,12 @@ export class FeatureService {
           usedCount: 1,
           periodStart: startOfMonth(new Date()),
           periodEnd: endOfMonth(new Date()),
+          subscription: {
+            id: subscriptionId,
+          },
+          planFeaturePermission: {
+            id: planFeaturePermissionId,
+          },
         }),
       );
     }
@@ -74,6 +81,32 @@ export class FeatureService {
     });
 
     return { data: features };
+  }
+
+  async getFeatureById(id: string) {
+    const feature = await this.featureRepository.findOne({
+      where: { id },
+    });
+
+    if (!feature) {
+      throw new NotFoundException("Feature not found");
+    }
+
+    return { data: feature };
+  }
+
+  async update(id: string, dto: UpdateFeatureDto) {
+    const { data: feature } = await this.getFeatureById(id);
+
+    Object.assign(feature, dto);
+    const newFeature = await this.featureRepository.save(feature);
+    return { data: newFeature };
+  }
+
+  async delete(id: string): Promise<void> {
+    const { data: feature } = await this.getFeatureById(id);
+
+    await this.featureRepository.remove(feature);
   }
 
   async getFeaturePermissionsByIds(featurePermissionsId: string[]) {

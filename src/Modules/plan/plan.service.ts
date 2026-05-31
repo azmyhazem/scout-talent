@@ -10,6 +10,7 @@ import { CreatePlanDto } from "./dto/createPlan.dto";
 import { PlanFeaturePermission } from "./plan-feature-permission.entity";
 import { FeatureService } from "../features/feature.service";
 import { PlanPermissionDto } from "./dto/planPermission.dto";
+import { UpdatePlanDto } from "./dto/update-plan.dto";
 
 @Injectable()
 export class PlanService {
@@ -30,6 +31,7 @@ export class PlanService {
   public async getPlanById(id: string) {
     return this.planRepository.findOne({
       where: { id },
+      relations: ["planFeaturePermissions"],
     });
   }
 
@@ -100,6 +102,28 @@ export class PlanService {
         isActive: true,
       },
     });
+  }
+
+  public async update(id: string, dto: UpdatePlanDto): Promise<Plan> {
+    const plan = await this.planRepository.findOne({
+      where: { id },
+    });
+
+    if (!plan) {
+      throw new NotFoundException("Plan not found");
+    }
+
+    Object.assign(plan, dto);
+
+    return await this.planRepository.save(plan);
+  }
+
+  public async delete(id: string): Promise<void> {
+    const result = await this.planRepository.delete(id);
+
+    if (!result.affected) {
+      throw new NotFoundException("Plan not found");
+    }
   }
 
   private async createPlanFeaturePermissions(
