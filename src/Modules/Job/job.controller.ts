@@ -24,13 +24,13 @@ import { ApiBody, ApiSecurity } from "@nestjs/swagger";
 import { PermissionGuard } from "../permission/guard/permission.guard";
 import { RequirePermission } from "../permission/decorator/permission.decorator";
 
-@UseGuards(AuthGuard,PermissionGuard)
 @Controller("jobs")
 export class JobController {
   constructor(private jobService: JobServices) {}
 
   @Post("createJob")
   @Roles(RoleUser.COMPANY)
+  @UseGuards(AuthGuard, PermissionGuard)
   @ApiSecurity("bearer")
   @RequirePermission("job:create")
   public async CreateJob(
@@ -42,6 +42,7 @@ export class JobController {
   }
 
   @Get("recommend/candidate/:jobId")
+  @UseGuards(AuthGuard, PermissionGuard)
   @Roles(RoleUser.COMPANY)
   @ApiSecurity("bearer")
   @RequirePermission("job:get_recommended_candidates")
@@ -60,6 +61,7 @@ export class JobController {
   }
 
   @Get("candidate/invit/:jobId/:userId/:recommendId")
+  @UseGuards(AuthGuard, PermissionGuard)
   @Roles(RoleUser.COMPANY)
   @ApiSecurity("bearer")
   @RequirePermission("job:invite_candidate")
@@ -69,10 +71,16 @@ export class JobController {
     @Param("recommendId") recommendId: string,
     @currentUser() company: JwtPayloadType,
   ) {
-    return this.jobService.invitCandidate(userId,jobId,recommendId,company.id)
+    return this.jobService.invitCandidate(
+      userId,
+      jobId,
+      recommendId,
+      company.id,
+    );
   }
 
   @Get("allJob")
+  @UseGuards(AuthGuard, PermissionGuard)
   @Roles(RoleUser.APPLICANT)
   @ApiSecurity("bearer")
   @RequirePermission("job:create")
@@ -88,6 +96,7 @@ export class JobController {
   }
 
   @Delete("/:id")
+  @UseGuards(AuthGuard, PermissionGuard)
   @Roles(RoleUser.COMPANY)
   @ApiSecurity("bearer")
   @RequirePermission("job:delete")
@@ -100,6 +109,7 @@ export class JobController {
   }
 
   @Put("/:id")
+  @UseGuards(AuthGuard, PermissionGuard)
   @Roles(RoleUser.COMPANY)
   @ApiSecurity("bearer")
   @ApiBody({ type: updateJobDTO })
@@ -114,6 +124,7 @@ export class JobController {
   }
 
   @Post("/:jobId/status")
+  @UseGuards(AuthGuard, PermissionGuard)
   @Roles(RoleUser.COMPANY)
   @ApiSecurity("bearer")
   @RequirePermission("job:change_status")
