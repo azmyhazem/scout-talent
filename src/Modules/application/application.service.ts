@@ -224,6 +224,22 @@ export class ApplicationService {
 
       const application = await manager.save(jobApp);
 
+      await this.notificationService.create(
+        job.company.id,
+        {
+          type: NotificationType.APPLY_JOB,
+          body: `${user.user.name} applied for the position "${job.title}".`,
+          meta: {
+            applicationId: application.id,
+            jobId: jobApp.job.id,
+            applicantName: user.user.name,
+            jobTitle: job.title,
+          },
+          user: user.user,
+        },
+        manager,
+      );
+
       return { applicationId: application.id };
     });
 
@@ -684,6 +700,21 @@ export class ApplicationService {
       offer.respondedAt = new Date();
 
       const Noffer = await manager.save(offer);
+
+      await this.notificationService.create(
+        offer.application.job.company.user.id,
+        {
+          type: NotificationType.OFFER_RESPONSE,
+          body: ``,
+          meta: {
+            applicationId: offer.application.id,
+            offerId: offer.id,
+            applicantName: offer.application.applicant.user.name,
+          },
+          user: offer.application.job.company.user,
+        },
+        manager,
+      );
 
       if (Noffer.status === OfferStatus.REJECTED) {
         await this.rejectCV(

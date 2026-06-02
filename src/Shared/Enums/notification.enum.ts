@@ -1,4 +1,5 @@
 export enum NotificationType {
+  APPLY_JOB = "apply job",
   INTERVIEW_SCHEDULED = "interview_scheduled",
   FEEDBACK_SUBMITTED = "feedback_submitted",
   HIRED = "Hired",
@@ -7,9 +8,12 @@ export enum NotificationType {
   INTERVIEW_CANCELLED = "interview_cancelled",
   REJECTED = "rejected",
   INVIT = "Invit",
+  OFFER_RESPONSE = "offer_response",
 }
 
 export const NotificationTitleMap: Record<NotificationType, string> = {
+  [NotificationType.APPLY_JOB]: "New Applicant Apply",
+  [NotificationType.OFFER_RESPONSE]: "Offer Response",
   [NotificationType.INTERVIEW_SCHEDULED]: "Interview Scheduled",
   [NotificationType.FEEDBACK_SUBMITTED]: "Feedback Available",
   [NotificationType.HIRED]: "You're Hired!",

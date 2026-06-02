@@ -7,9 +7,22 @@ type InterviewMeta = {
   jobTitle: string;
 };
 
+type ApplyMeta = {
+  applicationId: string;
+  applicantName: string;
+  jobTitle: string;
+  jobId: string;
+};
+
 type OfferMeta = {
   jobId: string;
   companyName: string;
+};
+
+type OfferResponseMeta = {
+  applicationId: string;
+  applicantName: string;
+  offerId: string;
 };
 
 type HiredMeta = {
@@ -25,11 +38,13 @@ type RejectedMeta = {
 
 export type NotificationMetaMap = {
   [NotificationType.INTERVIEW_SCHEDULED]: InterviewMeta;
+  [NotificationType.OFFER_RESPONSE]: OfferResponseMeta;
   [NotificationType.INTERVIEW_RESCHEDULED]: InterviewMeta;
   [NotificationType.INTERVIEW_CANCELLED]: InterviewMeta;
 
   [NotificationType.OFFER_SENT]: OfferMeta;
   [NotificationType.HIRED]: HiredMeta;
+  [NotificationType.APPLY_JOB]: ApplyMeta;
 
   [NotificationType.REJECTED]: RejectedMeta;
   [NotificationType.INVIT]: RejectedMeta;

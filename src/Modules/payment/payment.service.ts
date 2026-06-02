@@ -71,7 +71,7 @@ export class PaymentService {
       payment.status = PaymentStatus.SUCCESS;
 
       payment.transactionId = webhook.orderId.toString();
-      payment.paidAt= new Date()
+      payment.paidAt = new Date();
 
       await this.paymentRepository.save(payment);
 
@@ -91,4 +91,108 @@ export class PaymentService {
       success: true,
     };
   }
+
+  async getPayments(
+    page: number,
+    limit: number,
+    search?: string,
+    status?: string,
+  ) {
+    const queryBuilder = this.paymentRepository.createQueryBuilder("payment");
+
+    if (search) {
+      queryBuilder.andWhere(
+        `(payment.name ILIKE :search
+          OR payment.email ILIKE :search
+          OR payment.plan ILIKE :search)`,
+        {
+          search: `%${search}%`,
+        },
+      );
+    }
+
+    if (status) {
+      queryBuilder.andWhere("payment.status = :status", { status });
+    }
+
+    queryBuilder
+      .orderBy("payment.date", "DESC")
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [items, total] = await queryBuilder.getManyAndCount();
+
+    return {
+      success: true,
+      data: {
+        items,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+    };
+  }
+
+  async getPaymentStats() {
+    const [totalRevenueResult, transactions, failed, pending] =
+      await Promise.all([
+        this.paymentRepository
+          .createQueryBuilder("payment")
+          .select("COALESCE(SUM(payment.amount), 0)", "totalRevenue")
+          .where("payment.status = :status", {
+            status: PaymentStatus.SUCCESS,
+          })
+          .getRawOne(),
+
+        this.paymentRepository.count(),
+
+        this.paymentRepository.count({
+          where: {
+            status: PaymentStatus.FAILED,
+          },
+        }),
+
+        this.paymentRepository.count({
+          where: {
+            status: PaymentStatus.PENDING,
+          },
+        }),
+      ]);
+
+    return {
+      success: true,
+      data: {
+        totalRevenue: Number(totalRevenueResult.totalRevenue),
+        transactions,
+        failed,
+        pending,
+      },
+    };
+  }
+
+  async getPaymentById(paymentId: string) {
+    const payment = await this.paymentRepository.findOne({
+      where: {
+        id: paymentId,
+      },
+      relations: {
+        subscription: {
+          user: true,
+        },
+      },
+    });
+
+    if (!payment) {
+      throw new NotFoundException("Payment not found");
+    }
+
+    return {
+      success: true,
+      data: payment,
+    };
+  }
+
 }

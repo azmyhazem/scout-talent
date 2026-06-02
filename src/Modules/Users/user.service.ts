@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./user.entity";
 import { Between, EntityManager, Repository } from "typeorm";
@@ -252,5 +256,25 @@ export class UserService {
     });
 
     return company;
+  }
+
+  async getUserById(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: {
+        subscriptions: {
+          plan: true,
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    return {
+      success: true,
+      data: user,
+    };
   }
 }
