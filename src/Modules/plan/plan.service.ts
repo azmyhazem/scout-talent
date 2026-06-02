@@ -25,7 +25,15 @@ export class PlanService {
   ) {}
 
   public async getAllPlan() {
-    return this.planRepository.find();
+    return this.planRepository.find({
+      relations: {
+        planFeaturePermissions: {
+          featurePermission: {
+            feature: true,
+          },
+        },
+      },
+    });
   }
 
   public async getPlanById(id: string) {

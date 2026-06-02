@@ -8,10 +8,17 @@ import {
   Param,
 } from "@nestjs/common";
 import { PaymentService } from "./payment.service";
-import { ApiOperation, ApiParam, ApiQuery, ApiResponse } from "@nestjs/swagger";
+import {
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiSecurity,
+} from "@nestjs/swagger";
 import { AuthGuard } from "../auth/guards/AuthUser.guard";
 import { Roles } from "src/Shared/decorator/user_role.decorator";
 import { RoleUser } from "src/Shared/Enums/user.enum";
+import { PaymentStatus } from "src/Shared/Enums/payment.enum";
 
 @Controller("admin/payment")
 export class PaymentController {
@@ -25,6 +32,7 @@ export class PaymentController {
   @Get()
   @UseGuards(AuthGuard)
   @Roles(RoleUser.ADMIN)
+  @ApiSecurity("bearer")
   @ApiOperation({
     summary: "Get payments with pagination and filters",
   })
@@ -51,13 +59,11 @@ export class PaymentController {
   async getPayments(
     @Query("page") page = "1",
     @Query("limit") limit = "6",
-    @Query("search") search?: string,
-    @Query("status") status?: string,
+    @Query("status") status?: PaymentStatus,
   ) {
     return this.paymentService.getPayments(
       Number(page) || 1,
       Number(limit) || 6,
-      search,
       status,
     );
   }
@@ -65,6 +71,7 @@ export class PaymentController {
   @Get("stats")
   @UseGuards(AuthGuard)
   @Roles(RoleUser.ADMIN)
+  @ApiSecurity("bearer")
   @ApiOperation({
     summary: "Get payments statistics",
   })
@@ -77,6 +84,9 @@ export class PaymentController {
   }
 
   @Get(":paymentId")
+  @UseGuards(AuthGuard)
+  @Roles(RoleUser.ADMIN)
+  @ApiSecurity("bearer")
   @ApiOperation({
     summary: "Get payment details by id",
   })

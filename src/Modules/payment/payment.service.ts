@@ -92,31 +92,15 @@ export class PaymentService {
     };
   }
 
-  async getPayments(
-    page: number,
-    limit: number,
-    search?: string,
-    status?: string,
-  ) {
+  async getPayments(page: number, limit: number, status?: PaymentStatus) {
     const queryBuilder = this.paymentRepository.createQueryBuilder("payment");
-
-    if (search) {
-      queryBuilder.andWhere(
-        `(payment.name ILIKE :search
-          OR payment.email ILIKE :search
-          OR payment.plan ILIKE :search)`,
-        {
-          search: `%${search}%`,
-        },
-      );
-    }
 
     if (status) {
       queryBuilder.andWhere("payment.status = :status", { status });
     }
 
     queryBuilder
-      .orderBy("payment.date", "DESC")
+      .orderBy("payment.createdAt", "DESC")
       .skip((page - 1) * limit)
       .take(limit);
 
@@ -194,5 +178,4 @@ export class PaymentService {
       data: payment,
     };
   }
-
 }
