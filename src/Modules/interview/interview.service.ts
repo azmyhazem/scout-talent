@@ -358,7 +358,7 @@ export class InterviewService {
       const Ncancel = await manager.save(cancel);
 
       await this.applicationService.rejectCV(
-        Ninter.application.job.company.id,
+        Ninter.application.job.company.user.id,
         Ninter.application.id,
         { reason: `the interview cancel by ${cancelBy} + ${dto.reason}` },
       );
