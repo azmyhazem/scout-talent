@@ -317,14 +317,14 @@ export class InterviewService {
       where = {
         id: interviewId,
         application: {
-          job: { company: { id: companyId } },
+          job: { company: { user: { id: companyId } } },
         },
       };
     } else {
       where = {
         id: interviewId,
         application: {
-          applicant: { id: applicantId },
+          applicant: { user: { id: applicantId } },
         },
       };
     }
