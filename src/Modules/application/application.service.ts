@@ -225,7 +225,7 @@ export class ApplicationService {
       const application = await manager.save(jobApp);
 
       await this.notificationService.create(
-        job.company.id,
+        job.company.user.id,
         {
           type: NotificationType.APPLY_JOB,
           body: `${user.user.name} applied for the position "${job.title}".`,
@@ -235,7 +235,7 @@ export class ApplicationService {
             applicantName: user.user.name,
             jobTitle: job.title,
           },
-          user: user.user,
+          user: job.company.user,
         },
         manager,
       );
@@ -681,6 +681,8 @@ export class ApplicationService {
       },
       relations: [
         "application",
+        "application.applicant",
+        "application.applicant.user",
         "application.job",
         "application.job.company",
         "application.job.company.user",

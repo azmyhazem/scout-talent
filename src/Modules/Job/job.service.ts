@@ -88,6 +88,7 @@ export class JobServices implements OnModuleInit {
         "job.jobIdAi",
         "company.id",
         "user.name",
+        "user.id",
       ])
       .getOne();
     return job;
